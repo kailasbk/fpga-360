@@ -1,0 +1,15 @@
+# ignore log files
+*.jou
+*.log
+
+# ignore simulation output files
+*.out
+*.vcd
+
+# ignore synthesis output files (aside from bit file)
+/obj/*
+!/obj/*.bit
+/.Xil
+
+# ignore build client script
+lab-bc.py
