@@ -36,8 +36,7 @@ module vertex_shader (
   logic [3:0] valids;
 
   generate
-    genvar i;
-    for (i = 0; i < 4; i = i + 1) begin
+    for (genvar i = 0; i < 4; i = i + 1) begin
       // stage 1: multiply component-wise
       logic prod_valid;
       logic [31:0] x_prod;

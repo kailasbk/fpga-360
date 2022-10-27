@@ -42,7 +42,7 @@ module vertex_shader_tb;
 
   initial begin
     $dumpfile("waveform.vcd");
-    $dumpvars(0, vertex_shader_tb);
+    $dumpvars(3, vertex_shader_tb);
     clk_in = 0;
     rst_in = 0;
     #10;
