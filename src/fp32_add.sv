@@ -13,7 +13,7 @@ module fp32_add (
 );
 
   pipe #(
-    .LATENCY(8),
+    .LATENCY(10),
     .WIDTH(1)
   ) valid_pipe (
     .clk_in,
