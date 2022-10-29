@@ -49,6 +49,7 @@ module vertex_shader_tb;
     rst_in = 1;
     #10;
     rst_in = 0;
+    valid_in = 0;
     #10;
 
     // set the matrix

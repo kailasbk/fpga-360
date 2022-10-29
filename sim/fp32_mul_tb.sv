@@ -4,12 +4,14 @@
 `include "sim/testing.svh"
 
 `include "src/pipe.sv"
+`include "src/valid_pipe.sv"
 `include "src/fp32_round.sv"
 `include "src/fp32_mul.sv"
 
 module fp32_mul_tb;
 
   logic clk_in;
+  logic rst_in;
   logic valid_in;
   logic [31:0] a_in;
   logic [31:0] b_in;
@@ -19,6 +21,7 @@ module fp32_mul_tb;
 
   fp32_mul uut (
     .clk_in,
+    .rst_in,
     .valid_in,
     .a_in,
     .b_in,
@@ -33,8 +36,15 @@ module fp32_mul_tb;
 
   initial begin
     $dumpfile("waveform.vcd");
-    $dumpvars(0, fp32_mul_tb);
+    $dumpvars(3, fp32_mul_tb);
     clk_in = 0;
+    rst_in = 0;
+    #10;
+    rst_in = 1;
+    #10;
+    rst_in = 0;
+    valid_in = 0;
+    #10;
 
     valid_in = 1;
     a_in = 32'h43970FFD; // 302.1249

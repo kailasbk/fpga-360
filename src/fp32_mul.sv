@@ -3,6 +3,7 @@
 
 module fp32_mul (
   input wire clk_in,
+  input wire rst_in,
   
   input wire valid_in,
   input wire [31:0] a_in,
@@ -12,13 +13,13 @@ module fp32_mul (
   output logic [31:0] c_out
 );
 
-  pipe #(
-    .LATENCY(6),
-    .WIDTH(1)
+  valid_pipe #(
+    .LATENCY(6)
   ) valid_pipe (
     .clk_in,
-    .data_in(valid_in),
-    .data_out(valid_out)
+    .rst_in,
+    .valid_in,
+    .valid_out
   );
 
   logic a_lead, b_lead;
