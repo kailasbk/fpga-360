@@ -4,10 +4,10 @@
 `include "sim/testing.svh"
 `include "sim/vivado.svh"
 
-`include "src/pipe.sv"
-`include "src/valid_pipe.sv"
-`include "src/fp32_round.sv"
-`include "src/fp32_add.sv"
+`include "src/util/pipe.sv"
+`include "src/util/valid_pipe.sv"
+`include "src/fp/fp32_round.sv"
+`include "src/fp/fp32_add.sv"
 
 module fp32_add_tb;
 

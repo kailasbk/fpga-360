@@ -4,10 +4,10 @@
 `include "sim/testing.svh"
 `include "sim/vivado.svh"
 
-`include "src/pipe.sv"
-`include "src/valid_pipe.sv"
-`include "src/fp32_bound.sv"
-`include "src/triangle_clip.sv"
+`include "src/util/pipe.sv"
+`include "src/util/valid_pipe.sv"
+`include "src/fp/fp32_bound.sv"
+`include "src/graphics/triangle_clip.sv"
 
 module triangle_clip_tb;
 

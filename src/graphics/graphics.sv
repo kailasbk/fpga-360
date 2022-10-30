@@ -48,8 +48,8 @@ module graphics (
   vertex_shader vertex_shader (
     .clk_in(gpu_clk_in),
     .rst_in,
-    .col_set_in(0000), // TODO: route this
-    .col_in(0000), // TODO: route this
+    .col_set_in(1'b0), // TODO: route this
+    .col_in(128'b0), // TODO: route this
     .valid_in(fetch_valid_out),
     .vertex_in(fetch_vertex),
     .valid_out(shader_valid),
@@ -102,9 +102,9 @@ module graphics (
   rasterizer rasterizer (
     .clk_in(gpu_clk_in),
     .rst_in,
-    .valid_in(0000), // TODO: route this
+    .valid_in(1'b0), // TODO: route this
     .ready_out(rasterizer_ready),
-    .vertex_in(0000), // TODO: route this
+    .vertex_in(128'b0), // TODO: route this
     .valid_out(fragment_valid),
     .fragment_out(fragment)
   );

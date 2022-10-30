@@ -3,10 +3,10 @@
 
 `include "sim/testing.svh"
 
-`include "src/pipe.sv"
-`include "src/valid_pipe.sv"
-`include "src/fp32_round.sv"
-`include "src/fp32_mul.sv"
+`include "src/util/pipe.sv"
+`include "src/util/valid_pipe.sv"
+`include "src/fp/fp32_round.sv"
+`include "src/fp/fp32_mul.sv"
 
 module fp32_mul_tb;
 

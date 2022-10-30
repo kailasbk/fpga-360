@@ -4,11 +4,12 @@
 `include "sim/testing.svh"
 `include "sim/vivado.svh"
 
-`include "src/pipe.sv"
-`include "src/fp32_round.sv"
-`include "src/fp32_add.sv"
-`include "src/fp32_mul.sv"
-`include "src/vertex_shader.sv"
+`include "src/util/pipe.sv"
+`include "src/util/valid_pipe.sv"
+`include "src/fp/fp32_round.sv"
+`include "src/fp/fp32_add.sv"
+`include "src/fp/fp32_mul.sv"
+`include "src/graphics/vertex_shader.sv"
 
 module vertex_shader_tb;
 
