@@ -52,21 +52,25 @@ module fp32_add_tb;
     b_in = 32'h40C91759; // 6.2841
     // res = 0x439A345A = 308.409
     #10;
+
     valid_in = 1;
     a_in = 32'h3DFFCB92; // 0.1249
     b_in = 32'h3FA45D64; // 1.2841
-    #10;
     // res = 0x3FB45A1D = 1.409
+    #10;
+
     valid_in = 1;
     a_in = 32'hC141BE77; // -12.109
     b_in = 32'h40E6C99B; // 7.21211
-    #10;
     // res = 0xC09CB353 = -4.89689
+    #10;
+
     valid_in = 1;
     a_in = 32'h3DE31F8A; // 0.1109
     b_in = 32'hBDD53261; // -0.1041
     // res = 0x3BDED290 = 6.8000033E-3
     #10;
+
     valid_in = 0;
     #200;
     $finish;
