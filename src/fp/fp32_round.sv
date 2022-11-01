@@ -11,21 +11,26 @@ module fp32_round (
   output logic [22:0] rounded_frac_out
 );
 
+  logic [23:0] frac_upper_half, frac_lower_half;
+  assign frac_upper_half = normalized_frac_in[47:24];
+  assign frac_lower_half = normalized_frac_in[23:0];
+
+  logic frac_upper_lsb;
+  assign frac_upper_lsb = normalized_frac_in[24];
+
   logic frac_rounding_add;
   always_comb begin
-    if (normalized_frac_in[23:0] > 24'b1000_0000_0000_0000_0000_0000) begin
+    if (frac_lower_half > 24'b1000_0000_0000_0000_0000_0000) begin
       frac_rounding_add = 1'b1;
-    end else if (normalized_frac_in[23:0] < 24'b1000_0000_0000_0000_0000_0000) begin
+    end else if (frac_lower_half < 24'b1000_0000_0000_0000_0000_0000) begin
       frac_rounding_add = 1'b0;
-    end else if (normalized_frac_in[24]) begin
-      frac_rounding_add = 1'b1;
     end else begin
-      frac_rounding_add = 1'b0;
+      frac_rounding_add = frac_upper_lsb;
     end
   end
 
   logic exp_rounding_add;
-  assign exp_rounding_add = &normalized_frac_in[46:24] && frac_rounding_add;
+  assign exp_rounding_add = &frac_upper_half && frac_rounding_add;
 
   always_ff @(posedge clk_in) begin
     // calculate rounded c fraction
