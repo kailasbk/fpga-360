@@ -7,14 +7,16 @@ module fixed_divide (
   input wire [23:0] dividend_in,
   input wire [23:0] divisor_in,
 
+  output logic overflow_out,
   output logic [25:0] quotient_out
 );
 
   // takes 26 cycles
 
   logic [23:0] divisors [26];
-  logic [25:0] quotients [26];
   logic [24:0] remainders [26];
+  logic overflows [26];
+  logic [25:0] quotients [26];
 
   always_ff @(posedge clk_in) begin
     if (dividend_in >= divisor_in) begin
@@ -25,6 +27,7 @@ module fixed_divide (
       quotients[25] <= {26'b0};
     end
     divisors[25] <= divisor_in;
+    overflows[25] <= {1'b0, dividend_in} >= {divisor_in, 1'b0};
   end
 
   generate
@@ -45,12 +48,14 @@ module fixed_divide (
 
       always_ff @(posedge clk_in) begin
         divisors[i] <= divisors[i+1];
-        quotients[i] <= quotient;
         remainders[i] <= remainder << 1;
+        overflows[i] <= overflows[i+1];
+        quotients[i] <= quotient;
       end
     end
   endgenerate
 
+  assign overflow_out = overflows[0];
   assign quotient_out = quotients[0];
 
 endmodule
