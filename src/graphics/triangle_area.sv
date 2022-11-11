@@ -3,24 +3,12 @@
 
 module triangle_area (
   input wire clk_in,
-  input wire rst_in,
 
-  input wire valid_in,
   input wire [2:0][1:0][16:0] vertices_in,
 
-  output logic valid_out,
   output logic negative_out,
   output logic [33:0] area_out
 );
-
-  valid_pipe #(
-    .LATENCY(4)
-  ) valid_pipe (
-    .clk_in,
-    .rst_in,
-    .valid_in,
-    .valid_out
-  );
 
   logic [33:0] products [6];
   logic signed [34:0] differences [3];
