@@ -50,3 +50,4 @@ report_timing_summary -file $outputDir/post_route_timing_summary.rpt
 report_timing -file $outputDir/post_route_timing.rpt
 report_power -file $outputDir/post_route_power.rpt
 report_drc -file $outputDir/post_imp_drc.rpt
+write_bitstream -force $outputDir/out.bit

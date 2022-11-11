@@ -33,7 +33,7 @@ module framebuffer (
 
   logic [8:0] clear_x;
   logic [7:0] clear_y;
-  
+
   logic read_target;
   logic write_target;
 
@@ -72,7 +72,7 @@ module framebuffer (
         clear <= 1'b0;
         z <= z_in;
         write_address <= (y_in * 9'd320) + x_in;
-        rgb <= rgb_in; 
+        rgb <= rgb_in;
       end
     endcase
   end
