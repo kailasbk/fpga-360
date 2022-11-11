@@ -6,7 +6,8 @@ module fragment_shader (
   input wire rst_in,
 
   input wire valid_in,
-  input wire [3:0][31:0] fragment_in,
+  input wire [15:0] triangle_id_in,
+  input wire [2:0][16:0] fragment_in,
 
   output logic valid_out,
   output logic [8:0] x_out,
@@ -15,7 +16,19 @@ module fragment_shader (
   output logic [11:0] rgb_out
 );
 
-  // implementation here
+  always_ff @(posedge clk_in) begin
+    if (rst_in) begin
+      valid_out <= 1'b0;
+    end else if (valid_in) begin
+      valid_out <= 1'b1;
+      x_out <= fragment_in[0][16:8];
+      y_out <= fragment_in[1][15:8];
+      z_out <= fragment_in[2][16:8];
+      rgb_out <= (~triangle_id_in) * 10'd123; // pseudo random color gen for now
+    end else begin
+      valid_out <= 1'b0;
+    end
+  end
 
 endmodule
 

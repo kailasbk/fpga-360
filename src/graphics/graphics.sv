@@ -94,18 +94,22 @@ module graphics (
 
   // primitive fifo
   logic rasterizer_ready;
+  logic fifo_valid;
+  logic fifo_vertex;
   // TODO: fifo module here
 
   // rasterizer
   logic fragment_valid;
-  logic [3:0][31:0] fragment;
+  logic triangle_id;
+  logic [2:0][16:0] fragment;
   rasterizer rasterizer (
     .clk_in(gpu_clk_in),
     .rst_in,
-    .valid_in(1'b0), // TODO: route this
+    .valid_in(fifo_valid),
     .ready_out(rasterizer_ready),
-    .vertex_in(128'b0), // TODO: route this
+    .vertex_in(fifo_vertex),
     .valid_out(fragment_valid),
+    .triangle_id_out(triangle_id),
     .fragment_out(fragment)
   );
 
@@ -119,6 +123,7 @@ module graphics (
     .clk_in(gpu_clk_in),
     .rst_in,
     .valid_in(fragment_valid),
+    .triangle_id_in(triangle_id),
     .fragment_in(fragment),
     .valid_out(pixel_valid),
     .x_out(pixel_x),
@@ -135,9 +140,9 @@ module graphics (
     .clear_in(framebuffer_clear),
     .switch_in(framebuffer_switch),
     .valid_in(pixel_valid),
-    .x(pixel_x),
-    .y(pixel_y),
-    .z(pixel_z),
+    .x_in(pixel_x),
+    .y_in(pixel_y),
+    .z_in(pixel_z),
     .rgb_in(pixel_rgb),
     .hsync_out,
     .vsync_out,
