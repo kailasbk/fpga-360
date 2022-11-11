@@ -6,9 +6,11 @@
 *.out
 *.vcd
 
-# ignore synthesis output files (aside from bit file)
-/obj/*
-!/obj/*.bit
+# ignore vivado-generated ip
+/sim/ip/*.v
+
+# ignore synthesis output files
+/obj
 /.Xil
 
 # ignore build client script
