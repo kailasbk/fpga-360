@@ -8,10 +8,12 @@ module rasterizer (
   input wire valid_in,
   output logic ready_out,
   input wire [3:0][31:0] vertex_in,
+  input wire [11:0] color_in,
 
   output logic valid_out,
   output logic [15:0] triangle_id_out,
-  output logic [2:0][16:0] fragment_out
+  output logic [2:0][16:0] fragment_out,
+  output logic [11:0] color_out
 );
 
   logic next_triangle_id;
@@ -20,6 +22,7 @@ module rasterizer (
 
   logic [1:0] next_vertex;
   logic [2:0][16:0] vertices [3];
+  logic [11:0] colors [3];
 
   logic [16:0] x_lower_bound;
   logic [16:0] x_upper_bound;
@@ -73,6 +76,8 @@ module rasterizer (
             floating_fracs[2] <= 24'hFFFFFF;
             conv_shifts[2] <= 5'd0;
           end
+
+          colors[next_vertex] <= color_in;
 
           state <= Convert;
         end
@@ -176,11 +181,22 @@ module rasterizer (
     .data_out(z_buffered)
   );
 
+  logic [11:0] color_buffered;
+  pipe #(
+    .LATENCY(31),
+    .WIDTH(12)
+  ) color_pipe (
+    .clk_in,
+    .data_in(colors[0]),
+    .data_out(color_buffered)
+  );
+
   logic fragment_valid;
   assign fragment_valid = coeffs_valid && !(|coeffs_negative);
 
   assign valid_out = fragment_valid;
   assign fragment_out = {z_buffered, point_buffered};
+  assign color_out = color_buffered;
 
 endmodule
 

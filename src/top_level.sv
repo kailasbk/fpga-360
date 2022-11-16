@@ -28,14 +28,18 @@ module top_level (
   enum {Vertex1, Wait1, Vertex2, Wait2, Vertex3, Wait3, WaitEnd, WaitBuffer} state;
 
   logic [21:0] counter;
+  logic [5:0] color_counter;
   logic rasterizer_ready;
   logic fifo_valid;
   logic [3:0][31:0] fifo_vertex;
+  logic [11:0] fifo_color;
   logic framebuffer_clear, framebuffer_switch;
   always_ff @(posedge gpu_clk) begin
     if (rst_in) begin
-      fifo_valid <= 1'b0;
       counter <= 22'd0;
+      color_counter <= 6'd0;
+      fifo_valid <= 1'b0;
+      fifo_color <= 12'hFFF;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b0;
       state <= Vertex1;
@@ -90,6 +94,11 @@ module top_level (
         counter <= 22'd0;
         framebuffer_switch <= 1'b1;
         framebuffer_clear <= 1'b1;
+
+        if (color_counter == 6'd63) begin
+          fifo_color <= fifo_color + 1;
+        end
+        color_counter <= color_counter + 1;
       end else begin
         counter <= counter + 1;
         framebuffer_switch <= 1'b0;
@@ -102,15 +111,18 @@ module top_level (
   logic fragment_valid;
   logic [15:0] triangle_id;
   logic [2:0][16:0] fragment;
+  logic [11:0] fragment_color;
   rasterizer rasterizer (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(fifo_valid),
     .ready_out(rasterizer_ready),
     .vertex_in(fifo_vertex),
+    .color_in(fifo_color),
     .valid_out(fragment_valid),
     .triangle_id_out(triangle_id),
-    .fragment_out(fragment)
+    .fragment_out(fragment),
+    .color_out(fragment_color)
   );
 
   // fragment shader stage
@@ -125,6 +137,7 @@ module top_level (
     .valid_in(fragment_valid),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
+    .color_in(fragment_color),
     .valid_out(pixel_valid),
     .x_out(pixel_x),
     .y_out(pixel_y),
