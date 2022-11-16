@@ -7,7 +7,6 @@
 `include "sim/ip/depth_ram.v"
 
 `include "src/util/pipe.sv"
-`include "src/util/ram.sv"
 `include "src/util/valid_pipe.sv"
 `include "src/graphics/vga.sv"
 `include "src/graphics/framebuffer.sv"

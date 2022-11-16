@@ -23,8 +23,8 @@ module fragment_shader (
       valid_out <= 1'b1;
       x_out <= fragment_in[0][16:8];
       y_out <= fragment_in[1][15:8];
-      z_out <= fragment_in[2][16:8];
-      rgb_out <= (~triangle_id_in) * 10'd123; // pseudo random color gen for now
+      z_out <= fragment_in[2][16:9];
+      rgb_out <= 12'hAAA;
     end else begin
       valid_out <= 1'b0;
     end

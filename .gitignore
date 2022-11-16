@@ -5,9 +5,11 @@
 # ignore simulation output files
 *.out
 *.vcd
+*.lxt
 
 # ignore vivado-generated ip
 /sim/ip/*.v
+/ip
 
 # ignore synthesis output files
 /obj

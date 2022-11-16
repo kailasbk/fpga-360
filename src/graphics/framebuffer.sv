@@ -9,6 +9,7 @@ module framebuffer (
   input wire switch_in,
 
   input wire valid_in,
+  output logic ready_out,
   input wire [8:0] x_in,
   input wire [7:0] y_in,
   input wire [7:0] z_in,
@@ -41,16 +42,15 @@ module framebuffer (
     if (rst_in) begin
       write_target <= 1'b0;
       read_target <= 1'b1;
-      state <= Clear;
-      clear_x <= 9'd0;
-      clear_y <= 8'd0;
+      state <= Write;
+      ready_out <= 1'b1;
     end else case (state)
       Clear: begin
         if (clear_x == 319) begin
           clear_x <= 0;
           if (clear_y == 239) begin
-            clear_y <= 0;
             state <= Write;
+            ready_out <= 1'b1;
           end else clear_y <= clear_y + 1;
         end else clear_x <= clear_x + 1;
 
@@ -67,6 +67,9 @@ module framebuffer (
 
         if (clear_in) begin
           state <= Clear;
+          ready_out <= 1'b0;
+          clear_x <= 9'd0;
+          clear_y <= 8'd0;
         end
 
         clear <= 1'b0;

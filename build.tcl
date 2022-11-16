@@ -12,9 +12,9 @@ if {[llength $files] != 0} {
 }
 
 # import vivado ip
-read_ip ../ip/frame_ram.xcix
-read_ip ../ip/depth_ram.xcix
-read_ip ../ip/clk_wiz.xcix
+read_ip ./ip/frame_ram.xcix
+read_ip ./ip/depth_ram.xcix
+read_ip ./ip/clk_wiz.xcix
 
 # read source files
 read_verilog -sv [ glob ./src/util/*.sv ./src/fp/*.sv ./src/graphics/*.sv ./src/*.sv ]
