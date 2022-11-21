@@ -8,8 +8,9 @@
 *.lxt
 
 # ignore vivado-generated ip
-/sim/ip/*.v
 /ip
+/src/ip
+/sim/ip
 
 # ignore synthesis output files
 /obj
