@@ -2,7 +2,6 @@
 `timescale 1ns / 1ps
 
 `include "sim/testing.svh"
-`include "sim/vivado.svh"
 
 `include "src/util/pipe.sv"
 `include "src/util/valid_pipe.sv"
@@ -35,7 +34,7 @@ module triangle_clip_tb;
   end
 
   initial begin
-    $dumpfile("waveform.vcd");
+    $dumpfile("waveform.lxt");
     $dumpvars(3, triangle_clip_tb);
     clk_in = 0;
     rst_in = 0;

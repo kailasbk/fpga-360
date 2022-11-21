@@ -62,7 +62,7 @@ module triangle_clip (
             // set output if have a valid set of 3 inbounds vertices
             vertex_out <= triangle_vertices[0];
             valid_out <= 1'b1;
-            next_vertex <= 2'b01;
+            next_vertex <= 2'b01; // send vertex 1 after vertex 0
           end
         end else begin
           // move to next vertex in triangle
