@@ -15,7 +15,7 @@ module barycentric (
 );
 
   valid_pipe #(
-    .LATENCY(31) // 1 (input) + 4 (triangle_area) + 26 (fixed_divide) = 31
+    .LATENCY(32) // 1 (input) + 5 (triangle_area) + 26 (fixed_divide) = 32
   ) valid_pipe (
     .clk_in,
     .rst_in,

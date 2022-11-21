@@ -41,12 +41,12 @@ module rasterizer (
   always_ff @(posedge clk_in) begin
     if (rst_in) begin
       next_triangle_id <= 16'd0;
-      state <= Ready;
       next_vertex <= 2'd0;
       x_lower_bound <= 17'h140_00;
       x_upper_bound <= 17'h000_00;
       y_lower_bound <= 17'h0F0_00;
       y_upper_bound <= 17'h000_00;
+      state <= Ready;
       point_valid <= 1'b0;
     end else case (state)
       Ready: begin
@@ -163,7 +163,7 @@ module rasterizer (
 
   logic [33:0] point_buffered;
   pipe #(
-    .LATENCY(31),
+    .LATENCY(32),
     .WIDTH(34)
   ) point_pipe (
     .clk_in,
@@ -173,7 +173,7 @@ module rasterizer (
 
   logic [16:0] z_buffered;
   pipe #(
-    .LATENCY(31),
+    .LATENCY(32),
     .WIDTH(17)
   ) z_pipe (
     .clk_in,
@@ -183,7 +183,7 @@ module rasterizer (
 
   logic [11:0] color_buffered;
   pipe #(
-    .LATENCY(31),
+    .LATENCY(32),
     .WIDTH(12)
   ) color_pipe (
     .clk_in,

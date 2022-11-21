@@ -10,6 +10,9 @@ module triangle_area (
   output logic [33:0] area_out
 );
 
+  // takes 5 cycles
+
+  logic [33:0] products_q [6];
   logic [33:0] products [6];
   logic signed [34:0] differences [3];
   logic signed [34:0] signed_area;
@@ -27,12 +30,19 @@ module triangle_area (
   // (0, 0) is the top left, counter-clockwise yields positive area
 
   always_ff @(posedge clk_in) begin
-    products[0] <= x0 * y1;
-    products[1] <= x1 * y0;
-    products[2] <= x1 * y2;
-    products[3] <= x2 * y1;
-    products[4] <= x2 * y0;
-    products[5] <= x0 * y2;
+    products_q[0] <= x0 * y1;
+    products_q[1] <= x1 * y0;
+    products_q[2] <= x1 * y2;
+    products_q[3] <= x2 * y1;
+    products_q[4] <= x2 * y0;
+    products_q[5] <= x0 * y2;
+
+    products[0] <= products_q[0];
+    products[1] <= products_q[1];
+    products[2] <= products_q[2];
+    products[3] <= products_q[3];
+    products[4] <= products_q[4];
+    products[5] <= products_q[5];
 
     differences[0] <= $signed({1'b0, products[1]}) - $signed({1'b0, products[0]});
     differences[1] <= $signed({1'b0, products[3]}) - $signed({1'b0, products[2]});
