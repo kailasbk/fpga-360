@@ -17,9 +17,16 @@ module vertex_shader (
 
   logic [1:0] col_index;
   logic [3:0][31:0] cols [4];
+
   always_ff @(posedge clk_in) begin
-    if (rst_in) col_index <= 2'b0;
-    else begin
+    if (rst_in) begin
+      col_index <= 2'b0;
+      // start with the identity matrix
+      cols[0] <= {32'h00000000, 32'h00000000, 32'h00000000, 32'h3F800000};
+      cols[1] <= {32'h00000000, 32'h00000000, 32'h3F800000, 32'h00000000};
+      cols[2] <= {32'h00000000, 32'h3F800000, 32'h00000000, 32'h00000000};
+      cols[3] <= {32'h3F800000, 32'h00000000, 32'h00000000, 32'h00000000};
+    end else begin
       if (col_set_in) begin
         cols[col_index] <= col_in;
         col_index <= col_index + 1;
@@ -31,7 +38,7 @@ module vertex_shader (
   assign x = vertex_in[0];
   assign y = vertex_in[1];
   assign z = vertex_in[2];
-  assign w = 32'h3f800000; // w = 1.0
+  assign w = 32'h3F800000; // w = 1.0
 
   logic [3:0] valids;
 
@@ -42,6 +49,7 @@ module vertex_shader (
       logic [31:0] x_prod;
       fp32_mul x_mul (
         .clk_in,
+        .rst_in,
         .valid_in,
         .a_in(x),
         .b_in(cols[0][i]),
@@ -52,6 +60,7 @@ module vertex_shader (
       logic [31:0] y_prod;
       fp32_mul y_mul (
         .clk_in,
+        .rst_in,
         .valid_in,
         .a_in(y),
         .b_in(cols[1][i]),
@@ -62,6 +71,7 @@ module vertex_shader (
       logic [31:0] z_prod;
       fp32_mul z_mul (
         .clk_in,
+        .rst_in,
         .valid_in,
         .a_in(z),
         .b_in(cols[2][i]),
@@ -72,6 +82,7 @@ module vertex_shader (
       logic [31:0] w_prod;
       fp32_mul w_mul (
         .clk_in,
+        .rst_in,
         .valid_in,
         .a_in(w),
         .b_in(cols[3][i]),
@@ -84,6 +95,7 @@ module vertex_shader (
       logic [31:0] left_sum;
       fp32_add left_add (
         .clk_in,
+        .rst_in,
         .valid_in(prod_valid),
         .a_in(x_prod),
         .b_in(y_prod),
@@ -94,6 +106,7 @@ module vertex_shader (
       logic [31:0] right_sum;
       fp32_add right_add (
         .clk_in,
+        .rst_in,
         .valid_in(prod_valid),
         .a_in(z_prod),
         .b_in(w_prod),
@@ -105,6 +118,7 @@ module vertex_shader (
       logic final_valid;
       fp32_add add (
         .clk_in,
+        .rst_in,
         .valid_in(add_valid),
         .a_in(left_sum),
         .b_in(right_sum),
@@ -114,7 +128,7 @@ module vertex_shader (
     end
   endgenerate
 
-  assign valid_out = valids[0];
+  assign valid_out = &valids;
 
 endmodule
 
