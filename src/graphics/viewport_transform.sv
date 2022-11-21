@@ -19,7 +19,7 @@ module viewport_transform (
   // w = w
 
   pipe #(
-    .LATENCY(15),
+    .LATENCY(16), // 7 cycles for fp32_mul + 9 cycles for fp32_add
     .WIDTH(64)
   ) zw_pipe (
     .clk_in,

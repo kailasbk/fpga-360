@@ -35,7 +35,7 @@ module fp32_mul_tb;
   end
 
   initial begin
-    $dumpfile("waveform.vcd");
+    $dumpfile("waveform.lxt");
     $dumpvars(3, fp32_mul_tb);
     clk_in = 0;
     rst_in = 0;

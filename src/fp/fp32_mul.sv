@@ -14,7 +14,7 @@ module fp32_mul (
 );
 
   valid_pipe #(
-    .LATENCY(6)
+    .LATENCY(7)
   ) valid_pipe (
     .clk_in,
     .rst_in,
@@ -47,7 +47,7 @@ module fp32_mul (
 
   logic is_zero, is_infinity;
   pipe #(
-    .LATENCY(4),
+    .LATENCY(5),
     .WIDTH(2)
   ) flag_pipe (
     .clk_in,
@@ -56,15 +56,20 @@ module fp32_mul (
   );
 
   logic [8:0] exp_sum;
+  logic [8:0] exp_sum_buf;
   logic [8:0] c_base_exp;
   logic [47:0] frac_prod;
+  logic [47:0] frac_prod_buf;
   logic [47:0] c_base_frac;
   always_ff @(posedge clk_in) begin
     exp_sum <= a_exp + b_exp;
     frac_prod <= a_frac * b_frac;
 
-    c_base_exp <= exp_sum - 9'd127;
-    c_base_frac <= frac_prod;
+    exp_sum_buf <= exp_sum - 9'd127;
+    frac_prod_buf <= frac_prod;
+
+    c_base_exp <= exp_sum_buf;
+    c_base_frac <= frac_prod_buf;
   end
 
   logic [8:0] c_normalized_exp;
@@ -113,7 +118,7 @@ module fp32_mul (
   end
 
   pipe #(
-    .LATENCY(5),
+    .LATENCY(6),
     .WIDTH(1)
   ) sign_pipe (
     .clk_in,
