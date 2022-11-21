@@ -94,6 +94,7 @@ module top_level (
   );
   assign led[11:0] = rgb_out;
 
+  // vertex fetch stage
   logic fetch_valid;
   logic [15:0] fetch_id;
   logic [2:0][31:0] fetch_vertex;
@@ -107,6 +108,7 @@ module top_level (
     .color_out(fetch_color)
   );
 
+  // vertex shader stage
   logic shader_valid;
   logic [3:0][31:0] shader_vertex;
   vertex_shader vertex_shader (
@@ -120,17 +122,31 @@ module top_level (
     .vertex_out(shader_vertex)
   );
 
+  // triangle clipping stage
+  logic clip_valid;
+  logic [3:0][31:0] clip_vertex;
+  triangle_clip triangle_clip (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .valid_in(shader_valid),
+    .vertex_in(shader_vertex),
+    .valid_out(clip_valid),
+    .vertex_out(clip_vertex)
+  );
+
+  // perspective divide stage
   logic ndc_valid;
   logic [3:0][31:0] ndc_vertex;
   perspective_divide perspective_divide (
     .clk_in(gpu_clk),
     .rst_in,
-    .valid_in(shader_valid),
-    .vertex_in(shader_vertex),
+    .valid_in(clip_valid),
+    .vertex_in(clip_vertex),
     .valid_out(ndc_valid),
     .vertex_out(ndc_vertex)
   );
 
+  // viewport transform state
   logic viewport_valid;
   logic [3:0][31:0] viewport_vertex;
   viewport_transform viewport_transform (
@@ -142,6 +158,7 @@ module top_level (
     .vertex_out(viewport_vertex)
   );
 
+  // triangle fifo stage
   logic fifo_valid;
   logic [3:0][31:0] fifo_vertex;
   logic [11:0] fifo_color;
