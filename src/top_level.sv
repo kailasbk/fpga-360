@@ -55,7 +55,7 @@ module top_level (
         Vertex1: begin
           debug_count <= 32'd0;
           fifo_valid <= 1'b1;
-          fifo_vertex = {32'h00000000, 32'h3F000000, 32'h42200000, 32'h43200000}; // (160, 40)
+          fifo_vertex <= {32'h00000000, 32'h3F000000, 32'h42200000, 32'h43200000}; // (160, 40)
           state <= Wait1;
         end
         Wait1: begin
@@ -66,7 +66,7 @@ module top_level (
         end
         Vertex2: begin
           fifo_valid <= 1'b1;
-          fifo_vertex = {32'h00000000, 32'h3F000000, 32'h42A00000, 32'h42C80000}; // (100, 80)
+          fifo_vertex <= {32'h00000000, 32'h3F000000, 32'h42A00000, 32'h42C80000}; // (100, 80)
           state <= Wait2;
         end
         Wait2: begin
@@ -77,7 +77,7 @@ module top_level (
         end
         Vertex3: begin
           fifo_valid <= 1'b1;
-          fifo_vertex = {32'h00000000, 32'h3F000000, 32'h42C80000, 32'h43480000}; // (200, 100)
+          fifo_vertex <= {32'h00000000, 32'h3F000000, 32'h42C80000, 32'h43480000}; // (200, 100)
           state <= Wait3;
         end
         Wait3: begin
@@ -117,7 +117,6 @@ module top_level (
     .cat_out(ca),
     .an_out(an)
   );
-
   assign led[11:0] = rgb_out;
 
   logic fifo_valid;
