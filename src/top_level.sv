@@ -120,10 +120,27 @@ module top_level (
     .vertex_out(shader_vertex)
   );
 
+  logic ndc_valid;
+  logic [3:0][31:0] ndc_vertex;
+  perspective_divide perspective_divide (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .valid_in(shader_valid),
+    .vertex_in(shader_vertex),
+    .valid_out(ndc_valid),
+    .vertex_out(ndc_vertex)
+  );
+
   logic viewport_valid;
-  assign viewport_valid = shader_valid;
   logic [3:0][31:0] viewport_vertex;
-  assign viewport_vertex = shader_vertex;
+  viewport_transform viewport_transform (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .valid_in(ndc_valid),
+    .vertex_in(ndc_vertex),
+    .valid_out(viewport_valid),
+    .vertex_out(viewport_vertex)
+  );
 
   logic fifo_valid;
   logic [3:0][31:0] fifo_vertex;

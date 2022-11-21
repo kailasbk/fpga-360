@@ -124,17 +124,15 @@ module fp32_add (
   assign l_adj_frac = l_part_adj_frac >> frac_remaining_shift;
 
   logic [48:0] c_base_frac;
-  ADDSUB_MACRO adder (
-    .CARRYOUT(c_base_frac[48]),
-    .RESULT(c_base_frac[47:0]),
-    .A(h_adj_frac),
-    .ADD_SUB(add),
-    .B(l_adj_frac),
-    .CARRYIN(1'b0),
-    .CE(1'b1),
+  addsub addsub (
+    .A(h_adj_frac[47:1]),
+    .B(l_adj_frac[47:1]),
     .CLK(clk_in),
-    .RST(1'b0)
+    .ADD(add),
+    .C_OUT(c_base_frac[48]),
+    .S(c_base_frac[47:1])
   );
+  assign c_base_frac[0] = 1'b0;
 
   logic found_one;
   logic [4:0] exp_shift;

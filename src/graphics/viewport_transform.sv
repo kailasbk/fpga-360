@@ -19,21 +19,12 @@ module viewport_transform (
   // w = w
 
   pipe #(
-    .LATENCY(6),
-    .WIDTH(32)
-  ) z_pipe (
+    .LATENCY(15),
+    .WIDTH(64)
+  ) zw_pipe (
     .clk_in,
-    .data_in(vertex_in[2]),
-    .data_out(vertex_out[2])
-  );
-
-  pipe #(
-    .LATENCY(6),
-    .WIDTH(32)
-  ) w_pipe (
-    .clk_in,
-    .data_in(vertex_in[3]),
-    .data_out(vertex_out[3])
+    .data_in({vertex_in[3], vertex_in[2]}),
+    .data_out({vertex_out[3], vertex_out[2]})
   );
 
   logic x_mul_valid;
