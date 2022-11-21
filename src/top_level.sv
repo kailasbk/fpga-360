@@ -7,6 +7,8 @@ module top_level (
   input wire [15:0] sw,
   // other inputs go here
   output logic [15:0] led,
+  output logic [6:0] ca,
+  output logic [7:0] an,
 
   output logic hsync_out,
   output logic vsync_out,
@@ -27,25 +29,31 @@ module top_level (
 
   enum {Vertex1, Wait1, Vertex2, Wait2, Vertex3, Wait3, WaitEnd, WaitBuffer} state;
 
-  logic [21:0] counter;
-  logic [5:0] color_counter;
-  logic rasterizer_ready;
-  logic fifo_valid;
-  logic [3:0][31:0] fifo_vertex;
-  logic [11:0] fifo_color;
-  logic framebuffer_clear, framebuffer_switch;
+  logic [21:0] timer;
+
+  logic framebuffer_clear;
+  logic framebuffer_switch;
+  logic framebuffer_ready;
+
+  logic [31:0] debug_count;
+
   always_ff @(posedge gpu_clk) begin
     if (rst_in) begin
-      counter <= 22'd0;
-      color_counter <= 6'd0;
+      timer <= 22'd0;
       fifo_valid <= 1'b0;
-      fifo_color <= 12'hFFF;
+      fifo_color <= 12'hABC;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b0;
+      debug_count <= 32'd0;
       state <= Vertex1;
     end else begin
+      if (fragment_valid) begin
+        debug_count <= debug_count + 1;
+      end
+
       case (state)
         Vertex1: begin
+          debug_count <= 32'd0;
           fifo_valid <= 1'b1;
           fifo_vertex = {32'h00000000, 32'h3F000000, 32'h42200000, 32'h43200000}; // (160, 40)
           state <= Wait1;
@@ -90,22 +98,32 @@ module top_level (
         end
       endcase
 
-      if (counter == 22'd2_000_000) begin
-        counter <= 22'd0;
+      if (timer == 22'd2_000_000) begin
+        timer <= 22'd0;
         framebuffer_switch <= 1'b1;
         framebuffer_clear <= 1'b1;
-
-        if (color_counter == 6'd63) begin
-          fifo_color <= fifo_color + 1;
-        end
-        color_counter <= color_counter + 1;
       end else begin
-        counter <= counter + 1;
+        timer <= timer + 1;
         framebuffer_switch <= 1'b0;
         framebuffer_clear <= 1'b0;
       end
     end
   end
+
+  seven_segment_controller ssc (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .val_in(debug_count),
+    .cat_out(ca),
+    .an_out(an)
+  );
+
+  assign led[11:0] = rgb_out;
+
+  logic fifo_valid;
+  logic [3:0][31:0] fifo_vertex;
+  logic [11:0] fifo_color;
+  logic rasterizer_ready;
 
   // rasterizer
   logic fragment_valid;
@@ -146,7 +164,6 @@ module top_level (
   );
 
   // framebuffer stage
-  logic framebuffer_ready;
   framebuffer framebuffer (
     .gpu_clk_in(gpu_clk),
     .vga_clk_in(vga_clk),
