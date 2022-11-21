@@ -27,73 +27,48 @@ module top_level (
   assign rst_in = sw[15];
   assign led[15] = rst_in;
 
-  enum {Vertex1, Wait1, Vertex2, Wait2, Vertex3, Wait3, WaitEnd, WaitBuffer} state;
+  enum {Vertex1, WaitEnd, WaitBuffer} state;
 
   logic [21:0] timer;
 
+  logic fetch_rst;
   logic framebuffer_clear;
   logic framebuffer_switch;
   logic framebuffer_ready;
 
-  logic [31:0] debug_count;
+  logic [15:0] pixel_count;
+  logic [15:0] frame_count;
 
   always_ff @(posedge gpu_clk) begin
     if (rst_in) begin
       timer <= 22'd0;
-      fifo_valid <= 1'b0;
-      fifo_color <= 12'hABC;
+      fetch_rst <= 1'b1;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b0;
-      debug_count <= 32'd0;
-      state <= Vertex1;
+      pixel_count <= 16'd0;
+      frame_count <= 16'd0;
+      state <= WaitBuffer;
     end else begin
-      if (fragment_valid) begin
-        debug_count <= debug_count + 1;
-      end
-
       case (state)
-        Vertex1: begin
-          debug_count <= 32'd0;
-          fifo_valid <= 1'b1;
-          fifo_vertex <= {32'h00000000, 32'h3F000000, 32'h42200000, 32'h43200000}; // (160, 40)
-          state <= Wait1;
-        end
-        Wait1: begin
-          if (rasterizer_ready) begin
-            fifo_valid <= 1'b0;
-            state <= Vertex2;
-          end
-        end
-        Vertex2: begin
-          fifo_valid <= 1'b1;
-          fifo_vertex <= {32'h00000000, 32'h3F000000, 32'h42A00000, 32'h42C80000}; // (100, 80)
-          state <= Wait2;
-        end
-        Wait2: begin
-          if (rasterizer_ready) begin
-            fifo_valid <= 1'b0;
-            state <= Vertex3;
-          end
-        end
-        Vertex3: begin
-          fifo_valid <= 1'b1;
-          fifo_vertex <= {32'h00000000, 32'h3F000000, 32'h42C80000, 32'h43480000}; // (200, 100)
-          state <= Wait3;
-        end
-        Wait3: begin
-          if (rasterizer_ready) begin
-            fifo_valid <= 1'b0;
-            state <= WaitEnd;
-          end
-        end
-        WaitEnd: begin
-          if (!framebuffer_ready) begin
-            state <= WaitBuffer;
-          end
-        end
         WaitBuffer: begin
           if (framebuffer_ready) begin
+            fetch_rst <= 1'b0;
             state <= Vertex1;
+          end
+        end
+        Vertex1: begin
+          pixel_count <= 0;
+          frame_count <= frame_count + 1;
+          state <= WaitEnd;
+        end
+        WaitEnd: begin
+          if (pixel_valid) begin
+            pixel_count <= pixel_count + 1;
+          end
+
+          if (!framebuffer_ready) begin
+            state <= WaitBuffer;
+            fetch_rst <= 1'b1;
           end
         end
       endcase
@@ -113,16 +88,46 @@ module top_level (
   seven_segment_controller ssc (
     .clk_in(gpu_clk),
     .rst_in,
-    .val_in(debug_count),
+    .val_in({pixel_count, frame_count}),
     .cat_out(ca),
     .an_out(an)
   );
   assign led[11:0] = rgb_out;
 
+  logic fetch_valid;
+  logic [15:0] fetch_id;
+  logic [2:0][31:0] fetch_vertex;
+  logic [11:0] fetch_color;
+  vertex_fetch vertex_fetch (
+    .clk_in(gpu_clk),
+    .rst_in(rst_in || fetch_rst),
+    .valid_out(fetch_valid),
+    .vertex_id_out(fetch_id),
+    .vertex_out(fetch_vertex),
+    .color_out(fetch_color)
+  );
+
+  logic viewport_valid;
+  assign viewport_valid = fetch_valid;
+  logic [3:0][31:0] viewport_vertex;
+  assign viewport_vertex = fetch_vertex;
+
   logic fifo_valid;
   logic [3:0][31:0] fifo_vertex;
   logic [11:0] fifo_color;
   logic rasterizer_ready;
+  triangle_fifo triangle_fifo (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .vertex_valid_in(viewport_valid),
+    .vertex_in(viewport_vertex),
+    .color_valid_in(viewport_valid),
+    .color_in(fetch_color),
+    .valid_out(fifo_valid),
+    .ready_in(rasterizer_ready),
+    .vertex_out(fifo_vertex),
+    .color_out(fifo_color)
+  );
 
   // rasterizer
   logic fragment_valid;
