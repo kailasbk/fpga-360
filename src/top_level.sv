@@ -107,10 +107,23 @@ module top_level (
     .color_out(fetch_color)
   );
 
+  logic shader_valid;
+  logic [3:0][31:0] shader_vertex;
+  vertex_shader vertex_shader (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .col_set_in(1'b0), // TODO: route this
+    .col_in(128'b0), // TODO: route this
+    .valid_in(fetch_valid),
+    .vertex_in(fetch_vertex),
+    .valid_out(shader_valid),
+    .vertex_out(shader_vertex)
+  );
+
   logic viewport_valid;
-  assign viewport_valid = fetch_valid;
+  assign viewport_valid = shader_valid;
   logic [3:0][31:0] viewport_vertex;
-  assign viewport_vertex = fetch_vertex;
+  assign viewport_vertex = shader_vertex;
 
   logic fifo_valid;
   logic [3:0][31:0] fifo_vertex;
@@ -121,7 +134,7 @@ module top_level (
     .rst_in,
     .vertex_valid_in(viewport_valid),
     .vertex_in(viewport_vertex),
-    .color_valid_in(viewport_valid),
+    .color_valid_in(fetch_valid),
     .color_in(fetch_color),
     .valid_out(fifo_valid),
     .ready_in(rasterizer_ready),
