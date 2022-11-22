@@ -11,7 +11,7 @@ module vertex_fetch (
   output logic [11:0] color_out
 );
 
-  localparam LAST_INDEX = 2;
+  localparam LAST_INDEX = 8;
   enum {Reading, Done} state;
 
   valid_pipe #(

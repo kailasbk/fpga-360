@@ -35,23 +35,27 @@ module triangle_fifo (
       valid_out <= 1'b0;
     end else begin
       if (vertex_valid_in) begin
+        // TODO: add overflow logic
         vertex_write_ptr <= vertex_write_ptr + 1;
       end
 
       if (color_valid_in) begin
+        // TODO: add overflow logic
         color_write_ptr <= color_write_ptr + 1;
       end
 
-      if (non_empty && !lock) begin
-        read_valid <= 1'b1;
-        read_ptr <= read_ptr + 1;
+      if (lock) begin
+	      if (valid_out && ready_in) begin
+          // read from next ifo value
+	        read_ptr <= read_ptr + 1;
+	        lock <= 1'b0;
+          valid_out <= 1'b0;
+	      end else begin
+	        valid_out <= 1'b1;
+	      end
+      end else if (non_empty && !lock) begin
+        // lock until value consumed
         lock <= 1'b1;
-      end else begin
-        read_valid <= 1'b0;
-      end
-      valid_out <= read_valid;
-      if (valid_out && ready_in) begin
-        lock <= 1'b0;
       end
     end
   end
