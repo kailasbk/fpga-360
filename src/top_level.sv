@@ -27,11 +27,12 @@ module top_level (
   assign rst_in = sw[15];
   assign led[15] = rst_in;
 
-  enum {Vertex1, WaitEnd, WaitBuffer} state;
+  enum {WaitBuffer, UpdateCounters, WaitEnd} state;
 
   logic [21:0] timer;
 
   logic fetch_rst;
+  logic matrix_rst;
   logic framebuffer_clear;
   logic framebuffer_switch;
   logic framebuffer_ready;
@@ -44,19 +45,20 @@ module top_level (
       timer <= 22'd0;
       fetch_rst <= 1'b1;
       framebuffer_switch <= 1'b0;
-      framebuffer_clear <= 1'b0;
+      framebuffer_clear <= 1'b1;
       pixel_count <= 16'd0;
       frame_count <= 16'd0;
-      state <= WaitBuffer;
+      state <= WaitEnd;
     end else begin
       case (state)
         WaitBuffer: begin
+          matrix_rst <= 1'b0;
           if (framebuffer_ready) begin
             fetch_rst <= 1'b0;
-            state <= Vertex1;
+            state <= UpdateCounters;
           end
         end
-        Vertex1: begin
+        UpdateCounters: begin
           pixel_count <= 0;
           frame_count <= frame_count + 1;
           state <= WaitEnd;
@@ -67,8 +69,9 @@ module top_level (
           end
 
           if (!framebuffer_ready) begin
-            state <= WaitBuffer;
+            matrix_rst <= 1'b1;
             fetch_rst <= 1'b1;
+            state <= WaitBuffer;
           end
         end
       endcase
@@ -94,6 +97,20 @@ module top_level (
   );
   assign led[11:0] = rgb_out;
 
+  logic matrix_valid;
+  logic [3:0][31:0] matrix_col;
+  matrix_gen uut (
+    .clk_in,
+    .rst_in,
+    .valid_in(matrix_rst),
+    .right_in(96'h00000000_00000000_3F800000),
+    .up_in(96'h00000000_3F800000_00000000),
+    .direction_in(96'h3F800000_00000000_00000000),
+    .pos_in(96'h0),
+    .valid_out(matrix_valid),
+    .col_out(matrix_col)
+  );
+
   // vertex fetch stage
   logic fetch_valid;
   logic [15:0] fetch_id;
@@ -114,8 +131,8 @@ module top_level (
   vertex_shader vertex_shader (
     .clk_in(gpu_clk),
     .rst_in,
-    .col_set_in(1'b0), // TODO: route this
-    .col_in(128'b0), // TODO: route this
+    .col_set_in(matrix_valid),
+    .col_in(matrix_col),
     .valid_in(fetch_valid),
     .vertex_in(fetch_vertex),
     .valid_out(shader_valid),

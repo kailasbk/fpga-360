@@ -16,7 +16,7 @@ module rasterizer (
   output logic [11:0] color_out
 );
 
-  logic next_triangle_id;
+  logic [15:0] next_triangle_id;
   enum {Ready, Convert, Store, Assemble, Raster} state;
   assign ready_out = state == Ready;
 
