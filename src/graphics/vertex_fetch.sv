@@ -11,16 +11,16 @@ module vertex_fetch (
   output logic [11:0] color_out
 );
 
-  localparam LAST_INDEX = 8;
   enum {Reading, Done} state;
 
+  logic index_valid;
   valid_pipe #(
-    .LATENCY(4)
-  ) valid_pipe (
+    .LATENCY(2)
+  ) index_valid_pipe (
     .clk_in,
     .rst_in,
     .valid_in(state == Reading),
-    .valid_out
+    .valid_out(index_valid)
   );
 
   logic [11:0] index_id;
@@ -31,12 +31,22 @@ module vertex_fetch (
     end else case (state)
       Reading: begin
         index_id <= index_id + 1;
-        if (index_id == LAST_INDEX) begin
+        if (index_valid && vertex_id == 12'hFFF) begin
           state <= Done;
         end
       end
     endcase
   end
+
+  logic vertex_valid;
+  valid_pipe #(
+    .LATENCY(2)
+  ) vertex_valid_pipe (
+    .clk_in,
+    .rst_in,
+    .valid_in(state != Done && index_valid && vertex_id != 12'hFFF),
+    .valid_out
+  );
 
   logic [11:0] vertex_id;
   xilinx_single_port_ram #(
