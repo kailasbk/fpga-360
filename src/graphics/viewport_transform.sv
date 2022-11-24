@@ -15,16 +15,16 @@ module viewport_transform (
   // behavior should match the following:
   // x = 160 * x + 160
   // y = -120 * y + 120
-  // z = z
+  // z = (z + 1) * 0.5
   // w = w
 
   pipe #(
     .LATENCY(16), // 7 cycles for fp32_mul + 9 cycles for fp32_add
-    .WIDTH(64)
-  ) zw_pipe (
+    .WIDTH(32)
+  ) w_pipe (
     .clk_in,
-    .data_in({vertex_in[3], vertex_in[2]}),
-    .data_out({vertex_out[3], vertex_out[2]})
+    .data_in(vertex_in[3]),
+    .data_out(vertex_out[3])
   );
 
   logic x_mul_valid;
@@ -51,6 +51,18 @@ module viewport_transform (
     .c_out(y_mul_result)
   );
 
+  logic z_add_valid;
+  logic [31:0] z_add_result;
+  fp32_add z_add (
+    .clk_in,
+    .rst_in,
+    .valid_in,
+    .a_in(vertex_in[2]),
+    .b_in(32'h3F800000), // 1
+    .valid_out(z_add_valid),
+    .c_out(z_add_result)
+  );
+
   logic x_add_valid;
   fp32_add x_add (
     .clk_in,
@@ -73,7 +85,18 @@ module viewport_transform (
     .c_out(vertex_out[1])
   );
 
-  assign valid_out = x_add_valid && y_add_valid;
+  logic z_mul_valid;
+  fp32_mul z_mul (
+    .clk_in,
+    .rst_in,
+    .valid_in(z_add_valid),
+    .a_in(z_add_result),
+    .b_in(32'h3F000000), // 0.5
+    .valid_out(z_mul_valid),
+    .c_out(vertex_out[2])
+  );
+
+  assign valid_out = x_add_valid && y_add_valid && z_mul_valid;
 
 endmodule
 

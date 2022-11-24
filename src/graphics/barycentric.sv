@@ -26,10 +26,12 @@ module barycentric (
   logic [1:0][16:0] point;
   logic [1:0][16:0] vertices [3];
   always_ff @(posedge clk_in) begin
-    point <= point_in;
-    vertices[0] <= vertices_in[0];
-    vertices[1] <= vertices_in[1];
-    vertices[2] <= vertices_in[2];
+    if (valid_in) begin
+      point <= point_in;
+      vertices[0] <= vertices_in[0];
+      vertices[1] <= vertices_in[1];
+      vertices[2] <= vertices_in[2];
+    end
   end
 
   logic full_area_negative;
@@ -45,7 +47,7 @@ module barycentric (
   logic [33:0] a_area;
   triangle_area a_triangle_area (
     .clk_in,
-    .vertices_in({vertices[1], vertices[0], point}),
+    .vertices_in({vertices[2], vertices[1], point}),
     .negative_out(a_area_negative),
     .area_out(a_area)
   );
@@ -54,7 +56,7 @@ module barycentric (
   logic [33:0] b_area;
   triangle_area b_triangle_area (
     .clk_in,
-    .vertices_in({vertices[2], vertices[1], point}),
+    .vertices_in({vertices[0], vertices[2], point}),
     .negative_out(b_area_negative),
     .area_out(b_area)
   );
@@ -63,7 +65,7 @@ module barycentric (
   logic [33:0] c_area;
   triangle_area c_triangle_area (
     .clk_in,
-    .vertices_in({vertices[0], vertices[2], point}),
+    .vertices_in({vertices[1], vertices[0], point}),
     .negative_out(c_area_negative),
     .area_out(c_area)
   );

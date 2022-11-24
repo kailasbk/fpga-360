@@ -149,7 +149,7 @@ module rasterizer (
 
   logic coeffs_valid;
   logic [2:0] coeffs_negative;
-  logic [25:0] a_coeff, b_coeff, c_coeff;
+  logic [2:0][25:0] coeffs;
   barycentric barycentric (
     .clk_in,
     .rst_in,
@@ -158,7 +158,7 @@ module rasterizer (
     .vertices_in({vertices[2][1:0], vertices[1][1:0], vertices[0][1:0]}),
     .valid_out(coeffs_valid),
     .coeffs_negative_out(coeffs_negative),
-    .coeffs_out({c_coeff, b_coeff, a_coeff})
+    .coeffs_out(coeffs)
   );
 
   logic [33:0] point_buffered;
@@ -171,14 +171,14 @@ module rasterizer (
     .data_out(point_buffered)
   );
 
-  logic [16:0] z_buffered;
+  logic [2:0][16:0] zs_buffered;
   pipe #(
     .LATENCY(32),
-    .WIDTH(17)
+    .WIDTH(51)
   ) z_pipe (
     .clk_in,
-    .data_in(vertices[0][2]),
-    .data_out(z_buffered)
+    .data_in({vertices[2][2], vertices[1][2], vertices[0][2]}),
+    .data_out(zs_buffered)
   );
 
   logic [11:0] color_buffered;
@@ -191,12 +191,64 @@ module rasterizer (
     .data_out(color_buffered)
   );
 
+  // INTERPOLATION SECTION
+
   logic fragment_valid;
   assign fragment_valid = coeffs_valid && !(|coeffs_negative);
 
-  assign valid_out = fragment_valid;
-  assign fragment_out = {z_buffered, point_buffered};
-  assign color_out = color_buffered;
+  valid_pipe #(
+    .LATENCY(4)
+  ) interp_valid_pipe (
+    .clk_in,
+    .rst_in,
+    .valid_in(fragment_valid),
+    .valid_out
+  );
+
+  logic [16:0] a_coeff, b_coeff, c_coeff;
+  logic [33:0] coeff_products [3];
+  logic [33:0] a_product, b_product, c_product;
+  logic [33:0] z_interpolated;
+  always_ff @(posedge clk_in) begin
+    if (fragment_valid) begin
+      a_coeff <= coeffs[0][25:9];
+      b_coeff <= coeffs[1][25:9];
+      c_coeff <= coeffs[2][25:9];
+    end
+
+    coeff_products[0] <= a_coeff * zs_buffered[0];
+    coeff_products[1] <= b_coeff * zs_buffered[1];
+    coeff_products[2] <= c_coeff * zs_buffered[2];
+
+    a_product <= coeff_products[0];
+    b_product <= coeff_products[1];
+    c_product <= coeff_products[2];
+
+    z_interpolated <= a_product + b_product + c_product;
+  end
+
+  logic [33:0] point_interpolated;
+  pipe #(
+    .LATENCY(4),
+    .WIDTH(34)
+  ) interp_point_pipe (
+    .clk_in,
+    .data_in(point_buffered),
+    .data_out(point_interpolated)
+  );
+
+  logic [11:0] color_interpolated;
+  pipe #(
+    .LATENCY(4),
+    .WIDTH(12)
+  ) interp_color_pipe (
+    .clk_in,
+    .data_in(color_buffered),
+    .data_out(color_interpolated)
+  );
+
+  assign fragment_out = {z_interpolated[32:16], point_interpolated};
+  assign color_out = color_interpolated;
 
 endmodule
 
