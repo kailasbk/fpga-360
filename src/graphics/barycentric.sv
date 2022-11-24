@@ -75,7 +75,7 @@ module barycentric (
     .WIDTH(3)
   ) coeff_negative_pipe (
     .clk_in,
-    .data_in({c_area_negative, b_area_negative, a_area_negative}),
+    .data_in({c_area_negative ^ full_area_negative, b_area_negative ^ full_area_negative, a_area_negative ^ full_area_negative}),
     .data_out(coeffs_negative_out)
   );
 
