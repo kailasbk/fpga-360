@@ -10,9 +10,11 @@ module vertex_shader (
   
   input wire valid_in,
   input wire [2:0][31:0] vertex_in,
+  input wire [11:0] material_in,
 
   output logic valid_out,
-  output logic [3:0][31:0] vertex_out
+  output logic [3:0][31:0] vertex_out,
+  output logic [11:0] material_out
 );
 
   logic [1:0] col_index;
@@ -127,6 +129,15 @@ module vertex_shader (
       );
     end
   endgenerate
+
+  pipe #(
+    .LATENCY(25),
+    .WIDTH(12)
+  ) material_pipe (
+    .clk_in,
+    .data_in(material_in),
+    .data_out(material_out)
+  );
 
   assign valid_out = &valids;
 

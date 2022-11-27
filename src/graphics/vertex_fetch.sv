@@ -8,7 +8,7 @@ module vertex_fetch (
   output logic valid_out,
   output logic [15:0] vertex_id_out,
   output logic [2:0][31:0] vertex_out,
-  output logic [11:0] color_out
+  output logic [11:0] material_out
 );
 
   enum {Reading, Done} state;
@@ -64,10 +64,20 @@ module vertex_fetch (
     .douta(vertex_id)
   );
 
+  logic [11:0] index_id_buffered;
+  pipe #(
+    .LATENCY(2),
+    .WIDTH(12)
+  ) index_id_pipe (
+    .clk_in,
+    .data_in(index_id),
+    .data_out(index_id_buffered)
+  );
+
   pipe #(
     .LATENCY(2),
     .WIDTH(16)
-  ) id_pipe (
+  ) vertex_id_pipe (
     .clk_in,
     .data_in({4'b0, vertex_id}),
     .data_out(vertex_id_out)
@@ -91,16 +101,16 @@ module vertex_fetch (
   xilinx_single_port_ram #(
     .RAM_WIDTH(12),
     .RAM_DEPTH(1024),
-    .INIT_FILE("./data/colors.mem")
-  ) color_brom (
-    .addra(vertex_id[9:0]),
+    .INIT_FILE("./data/materials.mem")
+  ) material_brom (
+    .addra(index_id_buffered[9:0]),
     .dina(12'b0),
     .clka(clk_in),
     .wea(1'b0),
     .ena(1'b1),
     .rsta(1'b0),
     .regcea(1'b1),
-    .douta(color_out)
+    .douta(material_out)
   );
 
 endmodule

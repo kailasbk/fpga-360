@@ -115,19 +115,20 @@ module top_level (
   logic fetch_valid;
   logic [15:0] fetch_id;
   logic [2:0][31:0] fetch_vertex;
-  logic [11:0] fetch_color;
+  logic [11:0] fetch_material;
   vertex_fetch vertex_fetch (
     .clk_in(gpu_clk),
     .rst_in(rst_in || fetch_rst),
     .valid_out(fetch_valid),
     .vertex_id_out(fetch_id),
     .vertex_out(fetch_vertex),
-    .color_out(fetch_color)
+    .material_out(fetch_material)
   );
 
   // vertex shader stage
   logic shader_valid;
   logic [3:0][31:0] shader_vertex;
+  logic [11:0] shader_material;
   vertex_shader vertex_shader (
     .clk_in(gpu_clk),
     .rst_in,
@@ -135,20 +136,25 @@ module top_level (
     .col_in(matrix_col),
     .valid_in(fetch_valid),
     .vertex_in(fetch_vertex),
+    .material_in(fetch_material),
     .valid_out(shader_valid),
-    .vertex_out(shader_vertex)
+    .vertex_out(shader_vertex),
+    .material_out(shader_material)
   );
 
   // triangle clipping stage
   logic clip_valid;
   logic [3:0][31:0] clip_vertex;
+  logic [11:0] clip_material;
   triangle_clip triangle_clip (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(shader_valid),
     .vertex_in(shader_vertex),
+    .material_in(shader_material),
     .valid_out(clip_valid),
-    .vertex_out(clip_vertex)
+    .vertex_out(clip_vertex),
+    .material_out(clip_material)
   );
 
   // perspective divide stage
@@ -178,37 +184,37 @@ module top_level (
   // triangle fifo stage
   logic fifo_valid;
   logic [3:0][31:0] fifo_vertex;
-  logic [11:0] fifo_color;
+  logic [11:0] fifo_material;
   logic rasterizer_ready;
   triangle_fifo triangle_fifo (
     .clk_in(gpu_clk),
     .rst_in,
     .vertex_valid_in(viewport_valid),
     .vertex_in(viewport_vertex),
-    .color_valid_in(fetch_valid),
-    .color_in(fetch_color),
+    .material_valid_in(clip_valid),
+    .material_in(clip_material),
     .valid_out(fifo_valid),
     .ready_in(rasterizer_ready),
     .vertex_out(fifo_vertex),
-    .color_out(fifo_color)
+    .material_out(fifo_material)
   );
 
   // rasterizer
   logic fragment_valid;
   logic [15:0] triangle_id;
   logic [2:0][16:0] fragment;
-  logic [11:0] fragment_color;
+  logic [11:0] fragment_material;
   rasterizer rasterizer (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(fifo_valid),
     .ready_out(rasterizer_ready),
     .vertex_in(fifo_vertex),
-    .color_in(fifo_color),
+    .material_in(fifo_material),
     .valid_out(fragment_valid),
     .triangle_id_out(triangle_id),
     .fragment_out(fragment),
-    .color_out(fragment_color)
+    .material_out(fragment_material)
   );
 
   // fragment shader stage
@@ -223,7 +229,7 @@ module top_level (
     .valid_in(fragment_valid),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
-    .color_in(fragment_color),
+    .material_in(fragment_material),
     .valid_out(pixel_valid),
     .x_out(pixel_x),
     .y_out(pixel_y),

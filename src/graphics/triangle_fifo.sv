@@ -7,28 +7,28 @@ module triangle_fifo (
 
   input wire vertex_valid_in,
   input wire [3:0][31:0] vertex_in,
-  input wire color_valid_in,
-  input wire [11:0] color_in,
+  input wire material_valid_in,
+  input wire [11:0] material_in,
 
   output logic valid_out,
   input wire ready_in,
   output logic [3:0][31:0] vertex_out,
-  output logic [11:0] color_out
+  output logic [11:0] material_out
 );
 
   logic [9:0] vertex_write_ptr;
-  logic [9:0] color_write_ptr;
+  logic [9:0] material_write_ptr;
   logic [9:0] read_ptr;
 
   logic non_empty;
-  assign non_empty = (vertex_write_ptr != read_ptr) && (color_write_ptr != read_ptr);
+  assign non_empty = (vertex_write_ptr != read_ptr) && (material_write_ptr != read_ptr);
   logic read_valid;
   logic lock;
 
   always_ff @(posedge clk_in) begin
     if (rst_in) begin
       vertex_write_ptr <= 10'd0;
-      color_write_ptr <= 10'd0;
+      material_write_ptr <= 10'd0;
       read_ptr <= 10'd0;
       lock <= 1'b0;
       read_valid <= 1'b0;
@@ -39,9 +39,9 @@ module triangle_fifo (
         vertex_write_ptr <= vertex_write_ptr + 1;
       end
 
-      if (color_valid_in) begin
+      if (material_valid_in) begin
         // TODO: add overflow logic
-        color_write_ptr <= color_write_ptr + 1;
+        material_write_ptr <= material_write_ptr + 1;
       end
 
       if (lock) begin
@@ -84,13 +84,13 @@ module triangle_fifo (
   xilinx_dual_port_ram #(
     .RAM_WIDTH(12),
     .RAM_DEPTH(1024)
-  ) color_ram (
-    .addra(color_write_ptr),
+  ) material_ram (
+    .addra(material_write_ptr),
     .addrb(read_ptr),
-    .dina(color_in),
+    .dina(material_in),
     .dinb(),
     .clka(clk_in),
-    .wea(color_valid_in),
+    .wea(material_valid_in),
     .web(1'b0),
     .ena(1'b1),
     .enb(1'b1),
@@ -99,7 +99,7 @@ module triangle_fifo (
     .regcea(1'b1),
     .regceb(1'b1),
     .douta(),
-    .doutb(color_out)
+    .doutb(material_out)
   );
 
 endmodule

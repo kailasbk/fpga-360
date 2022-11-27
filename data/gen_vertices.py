@@ -20,8 +20,6 @@ vertices = [
     (-0.499969, 0.499969, 0.499969),
 ]
 
-colors = [(random.randint(6, 15), random.randint(6, 15), random.randint(6, 15)) for v in vertices]
-
 triangles = [
     (0, 1, 2),
     (1, 3, 4),
@@ -37,6 +35,8 @@ triangles = [
     (7, 4, 3),
 ]
 
+materials = [(random.randint(6, 15), random.randint(6, 15), random.randint(6, 15)) for i in range(len(triangles) * 3)]
+
 contents = ''
 for vertex in vertices:
     contents += hex_from_tuple(vertex) + '\n'
@@ -48,12 +48,12 @@ f.write(contents)
 f.close()
 
 contents = ''
-for color in colors:
-    contents += ''.join([hex(comp)[2:].upper().zfill(1) for comp in color]) + '\n'
+for material in materials:
+    contents += ''.join([hex(comp)[2:].upper().zfill(1) for comp in material]) + '\n'
 
 contents += 'FFF\n'
 
-f = open('./data/colors.mem', 'w')
+f = open('./data/materials.mem', 'w')
 f.write(contents)
 f.close()
 

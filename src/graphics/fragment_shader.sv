@@ -8,7 +8,7 @@ module fragment_shader (
   input wire valid_in,
   input wire [15:0] triangle_id_in,
   input wire [2:0][16:0] fragment_in,
-  input wire [11:0] color_in,
+  input wire [11:0] material_in,
 
   output logic valid_out,
   output logic [8:0] x_out,
@@ -25,7 +25,7 @@ module fragment_shader (
       x_out <= fragment_in[0][16:8];
       y_out <= fragment_in[1][15:8];
       z_out <= fragment_in[2][16:9];
-      rgb_out <= color_in;
+      rgb_out <= material_in;
     end else begin
       valid_out <= 1'b0;
     end

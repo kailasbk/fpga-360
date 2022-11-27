@@ -8,12 +8,12 @@ module rasterizer (
   input wire valid_in,
   output logic ready_out,
   input wire [3:0][31:0] vertex_in,
-  input wire [11:0] color_in,
+  input wire [11:0] material_in,
 
   output logic valid_out,
   output logic [15:0] triangle_id_out,
   output logic [2:0][16:0] fragment_out,
-  output logic [11:0] color_out
+  output logic [11:0] material_out
 );
 
   logic [15:0] next_triangle_id;
@@ -22,7 +22,7 @@ module rasterizer (
 
   logic [1:0] next_vertex;
   logic [2:0][16:0] vertices [3];
-  logic [11:0] colors [3];
+  logic [11:0] materials [3];
 
   logic [16:0] x_lower_bound;
   logic [16:0] x_upper_bound;
@@ -77,7 +77,7 @@ module rasterizer (
             conv_shifts[2] <= 5'd0;
           end
 
-          colors[next_vertex] <= color_in;
+          materials[next_vertex] <= material_in;
 
           state <= Convert;
         end
@@ -181,14 +181,14 @@ module rasterizer (
     .data_out(zs_buffered)
   );
 
-  logic [11:0] color_buffered;
+  logic [11:0] material_buffered;
   pipe #(
     .LATENCY(32),
     .WIDTH(12)
   ) color_pipe (
     .clk_in,
-    .data_in(colors[0]),
-    .data_out(color_buffered)
+    .data_in(materials[0]),
+    .data_out(material_buffered)
   );
 
   // INTERPOLATION SECTION
@@ -237,18 +237,18 @@ module rasterizer (
     .data_out(point_interpolated)
   );
 
-  logic [11:0] color_interpolated;
+  logic [11:0] material_interpolated;
   pipe #(
     .LATENCY(4),
     .WIDTH(12)
   ) interp_color_pipe (
     .clk_in,
-    .data_in(color_buffered),
-    .data_out(color_interpolated)
+    .data_in(material_buffered),
+    .data_out(material_interpolated)
   );
 
   assign fragment_out = {z_interpolated[32:16], point_interpolated};
-  assign color_out = color_interpolated;
+  assign material_out = material_interpolated;
 
 endmodule
 
