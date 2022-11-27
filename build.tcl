@@ -18,6 +18,7 @@ read_ip ./ip/clk_wiz.xcix
 
 # read source files
 read_verilog -sv [ glob ./src/util/*.sv ./src/fp/*.sv ./src/graphics/*.sv ./src/*.sv ]
+read_verilog -v [ glob ./src/ip/*.v ]
 read_xdc ./xdc/top_level.xdc
 
 # run synthesis
