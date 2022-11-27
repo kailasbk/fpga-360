@@ -103,10 +103,10 @@ module top_level (
     .clk_in,
     .rst_in,
     .valid_in(matrix_rst),
-    .right_in(96'h00000000_00000000_3F800000),
-    .up_in(96'h00000000_3F800000_00000000),
-    .direction_in(96'h3F800000_00000000_00000000),
-    .pos_in(96'h0),
+    .right_in(96'hBF3504F3_00000000_3F3504F3),
+    .up_in(96'hBF13CD3A_3F13CD3A_BF13CD3A),
+    .direction_in(96'h3F13CD3A_3F13CD3A_3F13CD3A),
+    .pos_in(96'h3F800000_3F800000_3F800000),
     .valid_out(matrix_valid),
     .col_out(matrix_col)
   );
