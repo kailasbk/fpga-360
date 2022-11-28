@@ -6,22 +6,47 @@
 `include "sim/ip/frame_ram.v"
 `include "sim/ip/depth_ram.v"
 `include "sim/ip/clk_wiz.v"
+`include "src/ip/xilinx_single_port_ram.v"
+`include "src/ip/xilinx_dual_port_ram.v"
 
 `include "src/util/pipe.sv"
 `include "src/util/valid_pipe.sv"
 `include "src/util/fixed_divide.sv"
+`include "src/util/addsub.sv"
+`include "src/util/seven_segment_controller.sv"
+
+`include "src/fp/fp32_bound.sv"
+`include "src/fp/fp32_round.sv"
+`include "src/fp/fp32_add.sv"
+`include "src/fp/fp32_mul.sv"
+`include "src/fp/fp32_dot.sv"
+`include "src/fp/fp32_div.sv"
+
 `include "src/graphics/triangle_area.sv"
 `include "src/graphics/barycentric.sv"
 `include "src/graphics/rasterizer.sv"
 `include "src/graphics/vga.sv"
 `include "src/graphics/framebuffer.sv"
 `include "src/graphics/fragment_shader.sv"
+`include "src/graphics/perspective_divide.sv"
+`include "src/graphics/triangle_clip.sv"
+`include "src/graphics/triangle_fifo.sv"
+`include "src/graphics/vertex_fetch.sv"
+`include "src/graphics/matrix_gen.sv"
+`include "src/graphics/vertex_shader.sv"
+`include "src/graphics/viewport_transform.sv"
+
 `include "src/top_level.sv"
 
 module top_level_tb;
 
   logic clk_in;
   logic rst_in;
+
+  logic [15:0] sw;
+  assign sw[15] = rst_in;
+  assign sw[14:0] = 15'b0;
+  logic [15:0] led;
 
   logic hsync_out;
   logic vsync_out;
@@ -30,6 +55,7 @@ module top_level_tb;
   top_level uut (
     .clk_in,
     .sw({rst_in, 15'b0}),
+    .led,
     .hsync_out,
     .vsync_out,
     .rgb_out
