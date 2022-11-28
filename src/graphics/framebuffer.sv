@@ -12,7 +12,7 @@ module framebuffer (
   output logic ready_out,
   input wire [8:0] x_in,
   input wire [7:0] y_in,
-  input wire [7:0] z_in,
+  input wire [15:0] z_in,
   input wire [11:0] rgb_in,
 
   output logic hsync_out,
@@ -22,8 +22,8 @@ module framebuffer (
 
   logic clear;
   logic clear_buffered;
-  logic [7:0] z;
-  logic [7:0] z_buffered;
+  logic [15:0] z;
+  logic [15:0] z_buffered;
   logic [16:0] write_address;
   logic [16:0] write_address_buffered;
   logic [11:0] rgb;
@@ -55,7 +55,7 @@ module framebuffer (
         end else clear_x <= clear_x + 1;
 
         clear <= 1'b1;
-        z <= 8'hFF;
+        z <= 16'hFFFF;
         write_address <= (clear_y * 9'd320) + clear_x;
         rgb <= 8'h00;
       end
@@ -82,7 +82,7 @@ module framebuffer (
 
   pipe #(
     .LATENCY(2),
-    .WIDTH(38)
+    .WIDTH(46)
   ) buffer_pipe (
     .clk_in(gpu_clk_in),
     .data_in({clear, z, write_address, rgb}),
@@ -101,7 +101,7 @@ module framebuffer (
   logic write_valid;
   assign write_valid = (valid_buffered && z_buffered < depth) || clear_buffered;
 
-  logic [7:0] depth;
+  logic [15:0] depth;
   depth_ram depth_ram (
     .clka(gpu_clk_in),
     .wea(write_valid),

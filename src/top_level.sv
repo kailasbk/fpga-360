@@ -104,9 +104,9 @@ module top_level (
     .rst_in,
     .valid_in(matrix_rst),
     .right_in(96'hBF3504F3_00000000_3F3504F3),
-    .up_in(96'hBF13CD3A_3F13CD3A_BF13CD3A),
-    .direction_in(96'h3F13CD3A_3F13CD3A_3F13CD3A),
-    .pos_in(96'h3F800000_3F800000_3F800000),
+    .up_in(96'hBEB504F3_3F5DB3D7_BEB504F3),
+    .direction_in(96'h3F1CC471_3F000000_3F1CC471),
+    .pos_in(96'h3FC00000_3FC00000_3FC00000),
     .valid_out(matrix_valid),
     .col_out(matrix_col)
   );
@@ -221,7 +221,7 @@ module top_level (
   logic pixel_valid;
   logic [8:0] pixel_x;
   logic [7:0] pixel_y;
-  logic [7:0] pixel_z;
+  logic [15:0] pixel_z;
   logic [11:0] pixel_rgb;
   fragment_shader fragment_shader (
     .clk_in(gpu_clk),

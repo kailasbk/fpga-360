@@ -19,11 +19,16 @@ module matrix_gen (
   logic [3:0][31:0] b_cols [4];
 
   logic [3:0][31:0] proj_rows[4];
-  // note: orthographic projection for now, perspective later
+  /* orthographic projection matrix
   assign proj_rows[0] = {32'h00000000, 32'h00000000, 32'h00000000, 32'h3F000000};
   assign proj_rows[1] = {32'h00000000, 32'h00000000, 32'h3F2AAAAA, 32'h00000000};
   assign proj_rows[2] = {32'hBF800000, 32'hBE800000, 32'h00000000, 32'h00000000};
   assign proj_rows[3] = {32'h3F800000, 32'h00000000, 32'h00000000, 32'h00000000};
+  */
+  assign proj_rows[0] = {32'h00000000, 32'h00000000, 32'h00000000, 32'h3FAAAAAA};
+  assign proj_rows[1] = {32'h00000000, 32'h00000000, 32'h3F800000, 32'h00000000};
+  assign proj_rows[2] = {32'hBE50FAC7, 32'hBF853978, 32'h00000000, 32'h00000000};
+  assign proj_rows[3] = {32'h00000000, 32'hBF800000, 32'h00000000, 32'h00000000};
 
   logic dot_valid_in;
   logic [3:0][31:0] dot_a;

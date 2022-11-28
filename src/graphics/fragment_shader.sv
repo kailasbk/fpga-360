@@ -13,7 +13,7 @@ module fragment_shader (
   output logic valid_out,
   output logic [8:0] x_out,
   output logic [7:0] y_out,
-  output logic [7:0] z_out,
+  output logic [15:0] z_out,
   output logic [11:0] rgb_out
 );
 
@@ -24,7 +24,7 @@ module fragment_shader (
       valid_out <= 1'b1;
       x_out <= fragment_in[0][16:8];
       y_out <= fragment_in[1][15:8];
-      z_out <= fragment_in[2][16:9];
+      z_out <= fragment_in[2][16:1];
       rgb_out <= material_in;
     end else begin
       valid_out <= 1'b0;
