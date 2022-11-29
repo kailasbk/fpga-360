@@ -163,7 +163,7 @@ module rasterizer (
 
   logic [33:0] point_buffered;
   pipe #(
-    .LATENCY(32),
+    .LATENCY(33),
     .WIDTH(34)
   ) point_pipe (
     .clk_in,
@@ -173,7 +173,7 @@ module rasterizer (
 
   logic [2:0][16:0] zs_buffered;
   pipe #(
-    .LATENCY(32),
+    .LATENCY(33),
     .WIDTH(51)
   ) z_pipe (
     .clk_in,
@@ -183,7 +183,7 @@ module rasterizer (
 
   logic [11:0] material_buffered;
   pipe #(
-    .LATENCY(32),
+    .LATENCY(33),
     .WIDTH(12)
   ) color_pipe (
     .clk_in,

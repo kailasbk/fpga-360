@@ -10,7 +10,7 @@ module triangle_area (
   output logic [33:0] area_out
 );
 
-  // takes 5 cycles
+  // takes 6 cycles
 
   logic [33:0] products_q [6];
   logic [33:0] products [6];
@@ -19,17 +19,18 @@ module triangle_area (
 
   logic [16:0] x0, x1, x2;
   logic [16:0] y0, y1, y2;
-  assign x0 = vertices_in[0][0];
-  assign y0 = vertices_in[0][1];
-  assign x1 = vertices_in[1][0];
-  assign y1 = vertices_in[1][1];
-  assign x2 = vertices_in[2][0];
-  assign y2 = vertices_in[2][1];
 
   // formula for the area taken from OpenGL 4.6 Chapter 14.6.1.
   // (0, 0) is the top left, counter-clockwise yields positive area
 
   always_ff @(posedge clk_in) begin
+    x0 <= vertices_in[0][0];
+    y0 <= vertices_in[0][1];
+    x1 <= vertices_in[1][0];
+    y1 <= vertices_in[1][1];
+    x2 <= vertices_in[2][0];
+    y2 <= vertices_in[2][1];
+
     products_q[0] <= x0 * y1;
     products_q[1] <= x1 * y0;
     products_q[2] <= x1 * y2;
