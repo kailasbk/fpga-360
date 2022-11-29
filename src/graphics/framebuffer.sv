@@ -7,6 +7,7 @@ module framebuffer (
   input wire rst_in,
   input wire clear_in,
   input wire switch_in,
+  input wire crosshair_in,
 
   input wire valid_in,
   output logic ready_out,
@@ -151,17 +152,45 @@ module framebuffer (
     .doutb(rgb_outs[1])
   );
 
-  logic blank_out;
+  logic blank_buffered;
+  logic [8:0] hcount_buffered;
+  logic [8:0] vcount_buffered;
   pipe #(
     .LATENCY(2),
-    .WIDTH(3)
-  ) sync_pipe (
+    .WIDTH(19)
+  ) signal_pipe (
     .clk_in(vga_clk_in),
-    .data_in({hsync, vsync, blank}),
-    .data_out({hsync_out, vsync_out, blank_out})
+    .data_in({hcount[9:1], vcount[9:1], blank}),
+    .data_out({hcount_buffered, vcount_buffered, blank_buffered})
   );
 
-  assign rgb_out = blank_out ? 12'b0 : (read_target ? rgb_outs[1] : rgb_outs[0]);
+  logic crosshair_enable;
+  always_ff @(posedge vga_clk_in) begin
+    crosshair_enable <= crosshair_in;
+  end
+
+  logic hcount_middle, vcount_middle;
+  assign hcount_middle = hcount_buffered == 9'd159 || hcount_buffered == 9'd160;
+  assign vcount_middle = vcount_buffered == 9'd119 || vcount_buffered == 9'd120;
+
+  always_ff @(posedge gpu_clk_in) begin
+    if (crosshair_enable && hcount_middle && vcount_middle) begin
+      rgb_out <= 12'hF00;
+    end else if (blank_buffered) begin
+      rgb_out <= 12'h000;
+    end else begin
+      rgb_out <= (read_target ? rgb_outs[1] : rgb_outs[0]);
+    end
+  end
+
+  pipe #(
+    .LATENCY(3),
+    .WIDTH(2)
+  ) sync_pipe (
+    .clk_in(vga_clk_in),
+    .data_in({hsync, vsync}),
+    .data_out({hsync_out, vsync_out})
+  );
 
 endmodule
 
