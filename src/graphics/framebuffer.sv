@@ -175,7 +175,7 @@ module framebuffer (
 
   always_ff @(posedge gpu_clk_in) begin
     if (crosshair_enable && hcount_middle && vcount_middle) begin
-      rgb_out <= 12'hF00;
+      rgb_out <= 12'hFFF;
     end else if (blank_buffered) begin
       rgb_out <= 12'h000;
     end else begin

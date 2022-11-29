@@ -49,38 +49,29 @@ module vertex_fetch (
   );
 
   logic [11:0] vertex_id;
+  logic [11:0] material_id;
   xilinx_single_port_ram #(
-    .RAM_WIDTH(12),
+    .RAM_WIDTH(24),
     .RAM_DEPTH(1024),
     .INIT_FILE("./data/indices.mem")
   ) index_brom (
     .addra(index_id[9:0]),
-    .dina(12'b0),
+    .dina(24'b0),
     .clka(clk_in),
     .wea(1'b0),
     .ena(1'b1),
     .rsta(1'b0),
     .regcea(1'b1),
-    .douta(vertex_id)
-  );
-
-  logic [11:0] index_id_buffered;
-  pipe #(
-    .LATENCY(2),
-    .WIDTH(12)
-  ) index_id_pipe (
-    .clk_in,
-    .data_in(index_id),
-    .data_out(index_id_buffered)
+    .douta({vertex_id, material_id})
   );
 
   pipe #(
     .LATENCY(2),
-    .WIDTH(16)
-  ) vertex_id_pipe (
+    .WIDTH(28)
+  ) id_pipe (
     .clk_in,
-    .data_in({4'b0, vertex_id}),
-    .data_out(vertex_id_out)
+    .data_in({4'b0, vertex_id, material_id}),
+    .data_out({vertex_id_out, material_out})
   );
 
   xilinx_single_port_ram #(
@@ -96,21 +87,6 @@ module vertex_fetch (
     .rsta(1'b0),
     .regcea(1'b1),
     .douta(vertex_out)
-  );
-
-  xilinx_single_port_ram #(
-    .RAM_WIDTH(12),
-    .RAM_DEPTH(1024),
-    .INIT_FILE("./data/materials.mem")
-  ) material_brom (
-    .addra(index_id_buffered[9:0]),
-    .dina(12'b0),
-    .clka(clk_in),
-    .wea(1'b0),
-    .ena(1'b1),
-    .rsta(1'b0),
-    .regcea(1'b1),
-    .douta(material_out)
   );
 
 endmodule

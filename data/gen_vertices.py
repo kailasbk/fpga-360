@@ -10,32 +10,30 @@ def hex_from_tuple(t):
 
 # vertices to convert to mem file
 vertices = [
-    (0.499969, -0.499969, 0.499969),
-    (-0.499969, -0.499969, -0.499969),
-    (-0.499969, -0.499969, 0.499969),
-    (0.499969, 0.499969, -0.499969),
-    (-0.499969, 0.499969, -0.499969),
-    (0.499969, -0.499969, -0.499969),
-    (0.499969, 0.499969, 0.499969),
-    (-0.499969, 0.499969, 0.499969),
+    (1.000000, 1.000000, -1.000000),
+    (1.000000, -1.000000, -1.000000),
+    (1.000000, 1.000000, 1.000000),
+    (1.000000, -1.000000, 1.000000),
+    (-1.000000, 1.000000, -1.000000),
+    (-1.000000, -1.000000, -1.000000),
+    (-1.000000, 1.000000, 1.000000),
+    (-1.000000, -1.000000, 1.000000),
 ]
 
 triangles = [
-    (0, 1, 2),
+    (5, 3, 1),
+    (5, 7, 3),
+    (3, 8, 4),
+    (3, 7, 8),
+    (1, 4, 2),
     (1, 3, 4),
-    (5, 6, 3),
-    (7, 3, 6),
-    (2, 4, 7),
-    (0, 7, 6),
-    (0, 5, 1),
-    (2, 1, 4),
-    (0, 2, 7),
-    (1, 5, 3),
-    (5, 0, 6),
-    (7, 4, 3),
+    (5, 2, 6),
+    (5, 1, 2),
+    (7, 6, 8),
+    (7, 5, 6),
+    (2, 8, 6),
+    (2, 4, 8),
 ]
-
-materials = [(random.randint(6, 15), random.randint(6, 15), random.randint(6, 15)) for i in range(len(triangles) * 3)]
 
 contents = ''
 for vertex in vertices:
@@ -48,21 +46,13 @@ f.write(contents)
 f.close()
 
 contents = ''
-for material in materials:
-    contents += ''.join([hex(comp)[2:].upper().zfill(1) for comp in material]) + '\n'
-
-contents += 'FFF\n'
-
-f = open('./data/materials.mem', 'w')
-f.write(contents)
-f.close()
-
-contents = ''
+material = 2
 for triangle in triangles:
     for index in triangle:
-        contents += hex(index)[2:].upper().zfill(3) + '\n'
+        contents += hex(index - 1)[2:].upper().zfill(3) + '_' + hex(material//2)[2:].upper().zfill(3) + '\n'
+    material += 1
 
-contents += 'FFF\n'
+contents += 'FFF_FFF\n'
 
 f = open('./data/indices.mem', 'w')
 f.write(contents)

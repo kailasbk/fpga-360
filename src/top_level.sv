@@ -37,6 +37,7 @@ module top_level (
   logic framebuffer_switch;
   logic framebuffer_ready;
 
+  logic [15:0] upper_count;
   logic [15:0] pixel_count;
   logic [15:0] frame_count;
 
@@ -46,6 +47,7 @@ module top_level (
       fetch_rst <= 1'b1;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b1;
+      upper_count <= 16'd0;
       pixel_count <= 16'd0;
       frame_count <= 16'd0;
       state <= WaitEnd;
@@ -69,6 +71,7 @@ module top_level (
           end
 
           if (!framebuffer_ready) begin
+            upper_count <= pixel_count;
             matrix_rst <= 1'b1;
             fetch_rst <= 1'b1;
             state <= WaitBuffer;
@@ -91,7 +94,7 @@ module top_level (
   seven_segment_controller ssc (
     .clk_in(gpu_clk),
     .rst_in,
-    .val_in({pixel_count, frame_count}),
+    .val_in({upper_count, frame_count}),
     .cat_out(ca),
     .an_out(an)
   );
@@ -106,7 +109,7 @@ module top_level (
     .right_in(96'hBF3504F3_00000000_3F3504F3),
     .up_in(96'hBEB504F3_3F5DB3D7_BEB504F3),
     .direction_in(96'h3F1CC471_3F000000_3F1CC471),
-    .pos_in(96'h3FC00000_3FC00000_3FC00000),
+    .pos_in(96'h40000000_40000000_40000000),
     .valid_out(matrix_valid),
     .col_out(matrix_col)
   );
@@ -244,6 +247,7 @@ module top_level (
     .rst_in,
     .clear_in(framebuffer_clear),
     .switch_in(framebuffer_switch),
+    .crosshair_in(sw[0]),
     .valid_in(pixel_valid),
     .ready_out(framebuffer_ready),
     .x_in(pixel_x),
