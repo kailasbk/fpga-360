@@ -82,7 +82,7 @@ module framebuffer (
   end
 
   pipe #(
-    .LATENCY(2),
+    .LATENCY(3),
     .WIDTH(46)
   ) buffer_pipe (
     .clk_in(gpu_clk_in),
@@ -91,7 +91,7 @@ module framebuffer (
   );
 
   valid_pipe #(
-    .LATENCY(3)
+    .LATENCY(4)
   ) valid_pipe (
     .clk_in(gpu_clk_in),
     .rst_in,
