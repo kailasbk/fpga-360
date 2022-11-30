@@ -6,11 +6,11 @@ module fp32_scale (
   input wire rst_in,
 
   input wire valid_in,
-  input wire [3:0][31:0] a_in,
+  input wire [2:0][31:0] a_in,
   input wire [31:0] b_in,
 
   output logic valid_out,
-  output logic [3:0][31:0] c_out
+  output logic [2:0][31:0] c_out
 );
 
   fp32_mul x_mul (

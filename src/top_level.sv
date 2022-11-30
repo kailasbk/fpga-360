@@ -102,7 +102,7 @@ module top_level (
 
   logic matrix_valid;
   logic [3:0][31:0] matrix_col;
-  matrix_gen uut (
+  matrix_gen matrix_gen (
     .clk_in,
     .rst_in,
     .valid_in(matrix_rst),
@@ -232,6 +232,7 @@ module top_level (
     .valid_in(fragment_valid),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
+    .normal_in({32'h3F13CD3A, 32'h3F13CD3A, 32'h3F13CD3A}),
     .material_in(fragment_material),
     .valid_out(pixel_valid),
     .x_out(pixel_x),

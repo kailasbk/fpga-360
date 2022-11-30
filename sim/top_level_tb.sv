@@ -20,6 +20,7 @@
 `include "src/fp/fp32_add.sv"
 `include "src/fp/fp32_mul.sv"
 `include "src/fp/fp32_dot.sv"
+`include "src/fp/fp32_scale.sv"
 `include "src/fp/fp32_div.sv"
 
 `include "src/graphics/triangle_area.sv"
