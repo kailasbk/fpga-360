@@ -27,7 +27,7 @@ module matrix_gen (
   */
   assign proj_rows[0] = {32'h00000000, 32'h00000000, 32'h00000000, 32'h3FAAAAAA};
   assign proj_rows[1] = {32'h00000000, 32'h00000000, 32'h3F800000, 32'h00000000};
-  assign proj_rows[2] = {32'hBE50FAC7, 32'hBF853978, 32'h00000000, 32'h00000000};
+  assign proj_rows[2] = {32'hBE4EDE62, 32'hBF8295FB, 32'h00000000, 32'h00000000};
   assign proj_rows[3] = {32'h00000000, 32'hBF800000, 32'h00000000, 32'h00000000};
 
   logic dot_valid_in;

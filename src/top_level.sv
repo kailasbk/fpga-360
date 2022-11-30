@@ -100,16 +100,42 @@ module top_level (
   );
   assign led[11:0] = rgb_out;
 
+  logic [2:0][31:0] right, up, direction;
+  assign right = 96'hBF3504F3_00000000_3F3504F3;
+  assign up = 96'hBEB504F3_3F5DB3D7_BEB504F3;
+  assign direction = 96'h3F1CC471_3F000000_3F1CC471;
+
+  logic [31:0] scale;
+  always_ff @(posedge gpu_clk) begin
+    case (sw[2:1])
+      2'b00: scale <= 32'h40400000;
+      2'b01: scale <= 32'h40A00000;
+      2'b10: scale <= 32'h40E00000;
+      2'b11: scale <= 32'h41100000;
+    endcase
+  end
+
+  logic [2:0][31:0] position;
+  fp32_scale direction_scale (
+    .clk_in,
+    .rst_in,
+    .valid_in(1'b1),
+    .a_in(direction),
+    .b_in(scale),
+    .valid_out(),
+    .c_out(position)
+  );
+
   logic matrix_valid;
   logic [3:0][31:0] matrix_col;
   matrix_gen matrix_gen (
     .clk_in,
     .rst_in,
     .valid_in(matrix_rst),
-    .right_in(96'hBF3504F3_00000000_3F3504F3),
-    .up_in(96'hBEB504F3_3F5DB3D7_BEB504F3),
-    .direction_in(96'h3F1CC471_3F000000_3F1CC471),
-    .pos_in(96'h40000000_40000000_40000000),
+    .right_in(right),
+    .up_in(up),
+    .direction_in(direction),
+    .pos_in(position),
     .valid_out(matrix_valid),
     .col_out(matrix_col)
   );
