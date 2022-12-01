@@ -8,6 +8,7 @@
 `include "sim/ip/clk_wiz.v"
 `include "src/ip/xilinx_single_port_ram.v"
 `include "src/ip/xilinx_dual_port_ram.v"
+`include "src/ip/debouncer.sv"
 
 `include "src/util/pipe.sv"
 `include "src/util/valid_pipe.sv"
@@ -22,6 +23,11 @@
 `include "src/fp/fp32_dot.sv"
 `include "src/fp/fp32_scale.sv"
 `include "src/fp/fp32_div.sv"
+
+`include "src/control/btn_ctrl.sv"
+`include "src/control/direction_vector.sv"
+`include "src/control/sine_table.sv"
+`include "src/control/yaw_pitch_ctrl.sv"
 
 `include "src/graphics/triangle_area.sv"
 `include "src/graphics/barycentric.sv"
@@ -56,6 +62,7 @@ module top_level_tb;
   top_level uut (
     .clk_in,
     .sw({rst_in, 15'b0}),
+    .btnc(1'b0), .btnu(1'b0), .btnl(1'b0), .btnr(1'b0), .btnd(1'b0),
     .led,
     .hsync_out,
     .vsync_out,

@@ -5,7 +5,7 @@ module top_level (
   input wire clk_in,
 
   input wire [15:0] sw,
-  // other inputs go here
+  input wire btnc, btnu, btnl, btnr, btnd,
   output logic [15:0] led,
   output logic [6:0] ca,
   output logic [7:0] an,
@@ -27,7 +27,58 @@ module top_level (
   assign rst_in = sw[15];
   assign led[15] = rst_in;
 
-  enum {WaitBuffer, UpdateCounters, WaitEnd} state;
+  logic [15:0] upper_count;
+  logic [15:0] pixel_count;
+  logic [15:0] frame_count;
+  seven_segment_controller ssc (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .val_in({upper_count, frame_count}),
+    .cat_out(ca),
+    .an_out(an)
+  );
+
+  // CONTROL LOGIC
+
+  logic [2:0][31:0] right, up, direction;
+  btn_ctrl ctrl (
+    .clk(gpu_clk),
+    .rst(rst_in),
+    .btnd, .btnu, .btnl, .btnr,
+    .x_vec(right),
+    .y_vec(up),
+    .z_vec(direction)
+  );
+  /*
+  assign right = 96'hBF3504F3_00000000_3F3504F3;
+  assign up = 96'hBEB504F3_3F5DB3D7_BEB504F3;
+  assign direction = 96'h3F1CC471_3F000000_3F1CC471;
+  */
+
+  logic [31:0] scale;
+  always_ff @(posedge gpu_clk) begin
+    case (sw[2:1])
+      2'b00: scale <= 32'h40400000;
+      2'b01: scale <= 32'h40A00000;
+      2'b10: scale <= 32'h40E00000;
+      2'b11: scale <= 32'h41100000;
+    endcase
+  end
+
+  logic [2:0][31:0] position;
+  fp32_scale direction_scale (
+    .clk_in,
+    .rst_in,
+    .valid_in(1'b1),
+    .a_in(direction),
+    .b_in(scale),
+    .valid_out(),
+    .c_out(position)
+  );
+
+  // GRAPHICS LOGIC
+
+  enum {WaitStart, WaitBuffer, UpdateCounters, WaitEnd} state;
 
   logic [21:0] timer;
 
@@ -37,14 +88,11 @@ module top_level (
   logic framebuffer_switch;
   logic framebuffer_ready;
 
-  logic [15:0] upper_count;
-  logic [15:0] pixel_count;
-  logic [15:0] frame_count;
-
   always_ff @(posedge gpu_clk) begin
     if (rst_in) begin
       timer <= 22'd0;
       fetch_rst <= 1'b1;
+      matrix_rst <= 1'b0;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b1;
       upper_count <= 16'd0;
@@ -70,7 +118,7 @@ module top_level (
             pixel_count <= pixel_count + 1;
           end
 
-          if (!framebuffer_ready) begin
+          if (!framebuffer_ready && timer > 100) begin // temp fix: add valids to ctrl
             upper_count <= pixel_count;
             matrix_rst <= 1'b1;
             fetch_rst <= 1'b1;
@@ -90,41 +138,6 @@ module top_level (
       end
     end
   end
-
-  seven_segment_controller ssc (
-    .clk_in(gpu_clk),
-    .rst_in,
-    .val_in({upper_count, frame_count}),
-    .cat_out(ca),
-    .an_out(an)
-  );
-  assign led[11:0] = rgb_out;
-
-  logic [2:0][31:0] right, up, direction;
-  assign right = 96'hBF3504F3_00000000_3F3504F3;
-  assign up = 96'hBEB504F3_3F5DB3D7_BEB504F3;
-  assign direction = 96'h3F1CC471_3F000000_3F1CC471;
-
-  logic [31:0] scale;
-  always_ff @(posedge gpu_clk) begin
-    case (sw[2:1])
-      2'b00: scale <= 32'h40400000;
-      2'b01: scale <= 32'h40A00000;
-      2'b10: scale <= 32'h40E00000;
-      2'b11: scale <= 32'h41100000;
-    endcase
-  end
-
-  logic [2:0][31:0] position;
-  fp32_scale direction_scale (
-    .clk_in,
-    .rst_in,
-    .valid_in(1'b1),
-    .a_in(direction),
-    .b_in(scale),
-    .valid_out(),
-    .c_out(position)
-  );
 
   logic matrix_valid;
   logic [3:0][31:0] matrix_col;
