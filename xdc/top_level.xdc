@@ -148,6 +148,11 @@ set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports { btnd }
 
 ##Pmod Header JXADC
 
+set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33     } [get_ports { vjoyn3 }]; #IO_L9N_T1_DQS_AD3N_15 Sch=xa_n[1]
+set_property -dict { PACKAGE_PIN A13   IOSTANDARD LVCMOS33     } [get_ports { vjoyp3 }]; #IO_L9P_T1_DQS_AD3P_15 Sch=xa_p[1]
+set_property -dict { PACKAGE_PIN A18   IOSTANDARD LVCMOS33     } [get_ports { vjoyn11 }]; #IO_L10N_T1_AD11N_15 Sch=xa_n[4]
+set_property -dict { PACKAGE_PIN B18   IOSTANDARD LVCMOS33     } [get_ports { vjoyp11 }]; #IO_L10P_T1_AD11P_15 Sch=xa_p[4]
+
 #set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVDS     } [get_ports { xa_n[0] }]; #IO_L9N_T1_DQS_AD3N_15 Sch=xa_n[1]
 #set_property -dict { PACKAGE_PIN A13   IOSTANDARD LVDS     } [get_ports { xa_p[0] }]; #IO_L9P_T1_DQS_AD3P_15 Sch=xa_p[1]
 #set_property -dict { PACKAGE_PIN A16   IOSTANDARD LVDS     } [get_ports { xa_n[1] }]; #IO_L8N_T1_AD10N_15 Sch=xa_n[2]

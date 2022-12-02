@@ -6,6 +6,7 @@ module top_level (
 
   input wire [15:0] sw,
   input wire btnc, btnu, btnl, btnr, btnd,
+  input wire vjoyp3, vjoyn3, vjoyp11, vjoyn11,
   output logic [15:0] led,
   output logic [6:0] ca,
   output logic [7:0] an,
@@ -28,12 +29,13 @@ module top_level (
   assign led[15] = rst_in;
 
   logic [15:0] upper_count;
+  logic [15:0] lower_count;
   logic [15:0] pixel_count;
   logic [15:0] frame_count;
   seven_segment_controller ssc (
     .clk_in(gpu_clk),
     .rst_in,
-    .val_in({upper_count, frame_count}),
+    .val_in({upper_count, lower_count}),
     .cat_out(ca),
     .an_out(an)
   );
@@ -41,6 +43,19 @@ module top_level (
   // CONTROL LOGIC
 
   logic [2:0][31:0] right, up, direction;
+  logic [1:0][11:0] debug_joystick_data;
+  assign upper_count = debug_joystick_data[1];
+  assign lower_count = debug_joystick_data[0];
+  joystick_smooth_ctrl ctrl (
+    .clk(gpu_clk),
+    .rst(rst_in),
+    .vjoyp3, .vjoyn3, .vjoyp11, .vjoyn11,
+    .debug_joystick_data,
+    .x_vec(right),
+    .y_vec(up),
+    .z_vec(direction)
+  );
+  /*
   btn_ctrl ctrl (
     .clk(gpu_clk),
     .rst(rst_in),
@@ -49,6 +64,7 @@ module top_level (
     .y_vec(up),
     .z_vec(direction)
   );
+  */
   /*
   assign right = 96'hBF3504F3_00000000_3F3504F3;
   assign up = 96'hBEB504F3_3F5DB3D7_BEB504F3;
@@ -95,7 +111,6 @@ module top_level (
       matrix_rst <= 1'b0;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b1;
-      upper_count <= 16'd0;
       pixel_count <= 16'd0;
       frame_count <= 16'd0;
       state <= WaitEnd;
@@ -119,7 +134,7 @@ module top_level (
           end
 
           if (!framebuffer_ready && timer > 100) begin // temp fix: add valids to ctrl
-            upper_count <= pixel_count;
+            //upper_count <= pixel_count;
             matrix_rst <= 1'b1;
             fetch_rst <= 1'b1;
             state <= WaitBuffer;

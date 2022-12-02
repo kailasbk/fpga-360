@@ -15,6 +15,7 @@ if {[llength $files] != 0} {
 read_ip ./ip/frame_ram.xcix
 read_ip ./ip/depth_ram.xcix
 read_ip ./ip/clk_wiz.xcix
+read_ip ./ip/xadc_fpga360.xcix
 
 # read source files
 read_verilog -sv [ glob ./src/util/*.sv ./src/fp/*.sv ./src/graphics/*.sv ./src/control/*.sv ./src/ip/*.sv ./src/*.sv ]
