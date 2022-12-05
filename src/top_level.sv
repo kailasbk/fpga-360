@@ -7,6 +7,7 @@ module top_level (
   input wire [15:0] sw,
   input wire btnc, btnu, btnl, btnr, btnd,
   input wire vjoyp3, vjoyn3, vjoyp11, vjoyn11,
+  output logic joy_s,
   output logic [15:0] led,
   output logic [6:0] ca,
   output logic [7:0] an,
@@ -43,9 +44,21 @@ module top_level (
   // CONTROL LOGIC
 
   logic [2:0][31:0] right, up, direction;
-  logic [1:0][11:0] debug_joystick_data;
-  assign upper_count = debug_joystick_data[1];
-  assign lower_count = debug_joystick_data[0];
+  logic [2:0][31:0] position;
+  assign position[1] = 32'h40000000;
+  logic [1:0][1:0][11:0] debug_joystick_data;
+  dual_joystick_smooth_ctrl ctrl (
+    .clk(gpu_clk),
+    .rst(rst_in),
+    .vjoyp3, .vjoyn3, .vjoyp11, .vjoyn11,
+    .joy_s,
+    .debug_joystick_data,
+    .x_vec(right),
+    .y_vec(up),
+    .z_vec(direction),
+    .pos({position[2], position[0]})
+  );
+  /*
   joystick_smooth_ctrl ctrl (
     .clk(gpu_clk),
     .rst(rst_in),
@@ -55,21 +68,6 @@ module top_level (
     .y_vec(up),
     .z_vec(direction)
   );
-  /*
-  btn_ctrl ctrl (
-    .clk(gpu_clk),
-    .rst(rst_in),
-    .btnd, .btnu, .btnl, .btnr,
-    .x_vec(right),
-    .y_vec(up),
-    .z_vec(direction)
-  );
-  */
-  /*
-  assign right = 96'hBF3504F3_00000000_3F3504F3;
-  assign up = 96'hBEB504F3_3F5DB3D7_BEB504F3;
-  assign direction = 96'h3F1CC471_3F000000_3F1CC471;
-  */
 
   logic [31:0] scale;
   always_ff @(posedge gpu_clk) begin
@@ -91,6 +89,7 @@ module top_level (
     .valid_out(),
     .c_out(position)
   );
+  */
 
   // GRAPHICS LOGIC
 
@@ -126,6 +125,13 @@ module top_level (
         UpdateCounters: begin
           pixel_count <= 0;
           frame_count <= frame_count + 1;
+          if (sw[1]) begin
+            lower_count <= debug_joystick_data[1][0];
+            upper_count <= debug_joystick_data[1][1];
+          end else begin
+            lower_count <= debug_joystick_data[0][0];
+            upper_count <= debug_joystick_data[0][1];
+          end
           state <= WaitEnd;
         end
         WaitEnd: begin
