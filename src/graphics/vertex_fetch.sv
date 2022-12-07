@@ -7,7 +7,8 @@ module vertex_fetch (
 
   output logic valid_out,
   output logic [15:0] vertex_id_out,
-  output logic [2:0][31:0] vertex_out,
+  output logic [2:0][31:0] position_out,
+  output logic [2:0][31:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -75,7 +76,7 @@ module vertex_fetch (
   );
 
   xilinx_single_port_ram #(
-    .RAM_WIDTH(96),
+    .RAM_WIDTH(192),
     .RAM_DEPTH(1024),
     .INIT_FILE("./data/vertices.mem")
   ) vertex_brom (
@@ -86,7 +87,7 @@ module vertex_fetch (
     .ena(1'b1),
     .rsta(1'b0),
     .regcea(1'b1),
-    .douta(vertex_out)
+    .douta({position_out, normal_out})
   );
 
 endmodule

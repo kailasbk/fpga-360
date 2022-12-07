@@ -9,11 +9,13 @@ module vertex_shader (
   input wire [3:0][31:0] col_in,
   
   input wire valid_in,
-  input wire [2:0][31:0] vertex_in,
+  input wire [2:0][31:0] position_in,
+  input wire [2:0][31:0] normal_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
-  output logic [3:0][31:0] vertex_out,
+  output logic [3:0][31:0] position_out,
+  output logic [2:0][31:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -37,9 +39,9 @@ module vertex_shader (
   end
 
   logic [31:0] x, y, z, w;
-  assign x = vertex_in[0];
-  assign y = vertex_in[1];
-  assign z = vertex_in[2];
+  assign x = position_in[0];
+  assign y = position_in[1];
+  assign z = position_in[2];
   assign w = 32'h3F800000; // w = 1.0
 
   logic [3:0] valids;
@@ -125,7 +127,7 @@ module vertex_shader (
         .a_in(left_sum),
         .b_in(right_sum),
         .valid_out(valids[i]),
-        .c_out(vertex_out[i])
+        .c_out(position_out[i])
       );
     end
   endgenerate
@@ -137,6 +139,15 @@ module vertex_shader (
     .clk_in,
     .data_in(material_in),
     .data_out(material_out)
+  );
+
+  pipe #(
+    .LATENCY(25),
+    .WIDTH(96)
+  ) normal_pipe (
+    .clk_in,
+    .data_in(normal_in),
+    .data_out(normal_out)
   );
 
   assign valid_out = &valids;

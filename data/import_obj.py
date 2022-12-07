@@ -39,9 +39,9 @@ for line in lines:
 
 contents = ''
 for vertex in vertices:
-    contents += hex_from_tuple(vertex[0]) + '\n'
+    contents += hex_from_tuple(vertex[0]) + '__' + hex_from_tuple(vertex[1]) + '\n'
 
-contents += 'FFFFFFFF_FFFFFFFF_FFFFFFFF\n'
+contents += 'FFFFFFFF_FFFFFFFF_FFFFFFFF__FFFFFFFF_FFFFFFFF_FFFFFFFF\n'
 
 f = open('./data/vertices.mem', 'w')
 f.write(contents)

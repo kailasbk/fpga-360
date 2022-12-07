@@ -177,20 +177,23 @@ module top_level (
   // vertex fetch stage
   logic fetch_valid;
   logic [15:0] fetch_id;
-  logic [2:0][31:0] fetch_vertex;
+  logic [2:0][31:0] fetch_position;
+  logic [2:0][31:0] fetch_normal;
   logic [11:0] fetch_material;
   vertex_fetch vertex_fetch (
     .clk_in(gpu_clk),
     .rst_in(rst_in || fetch_rst),
     .valid_out(fetch_valid),
     .vertex_id_out(fetch_id),
-    .vertex_out(fetch_vertex),
+    .position_out(fetch_position),
+    .normal_out(fetch_normal),
     .material_out(fetch_material)
   );
 
   // vertex shader stage
   logic shader_valid;
-  logic [3:0][31:0] shader_vertex;
+  logic [3:0][31:0] shader_position;
+  logic [2:0][31:0] shader_normal;
   logic [11:0] shader_material;
   vertex_shader vertex_shader (
     .clk_in(gpu_clk),
@@ -198,50 +201,55 @@ module top_level (
     .col_set_in(matrix_valid),
     .col_in(matrix_col),
     .valid_in(fetch_valid),
-    .vertex_in(fetch_vertex),
+    .position_in(fetch_position),
+    .normal_in(fetch_normal),
     .material_in(fetch_material),
     .valid_out(shader_valid),
-    .vertex_out(shader_vertex),
+    .position_out(shader_position),
+    .normal_out(shader_normal),
     .material_out(shader_material)
   );
 
   // triangle clipping stage
   logic clip_valid;
-  logic [3:0][31:0] clip_vertex;
+  logic [3:0][31:0] clip_position;
+  logic [2:0][31:0] clip_normal;
   logic [11:0] clip_material;
   triangle_clip triangle_clip (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(shader_valid),
-    .vertex_in(shader_vertex),
+    .position_in(shader_position),
+    .normal_in(shader_normal),
     .material_in(shader_material),
     .valid_out(clip_valid),
-    .vertex_out(clip_vertex),
+    .position_out(clip_position),
+    .normal_out(clip_normal),
     .material_out(clip_material)
   );
 
   // perspective divide stage
   logic ndc_valid;
-  logic [3:0][31:0] ndc_vertex;
+  logic [3:0][31:0] ndc_position;
   perspective_divide perspective_divide (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(clip_valid),
-    .vertex_in(clip_vertex),
+    .vertex_in(clip_position),
     .valid_out(ndc_valid),
-    .vertex_out(ndc_vertex)
+    .vertex_out(ndc_position)
   );
 
   // viewport transform state
   logic viewport_valid;
-  logic [3:0][31:0] viewport_vertex;
+  logic [3:0][31:0] viewport_position;
   viewport_transform viewport_transform (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(ndc_valid),
-    .vertex_in(ndc_vertex),
+    .vertex_in(ndc_position),
     .valid_out(viewport_valid),
-    .vertex_out(viewport_vertex)
+    .vertex_out(viewport_position)
   );
 
   // triangle fifo stage
@@ -252,13 +260,16 @@ module top_level (
   triangle_fifo triangle_fifo (
     .clk_in(gpu_clk),
     .rst_in,
-    .vertex_valid_in(viewport_valid),
-    .vertex_in(viewport_vertex),
+    .position_valid_in(viewport_valid),
+    .position_in(viewport_position),
+    .normal_valid_in(clip_valid),
+    .normal_in(clip_normal),
     .material_valid_in(clip_valid),
     .material_in(clip_material),
     .valid_out(fifo_valid),
     .ready_in(rasterizer_ready),
-    .vertex_out(fifo_vertex),
+    .position_out(fifo_vertex),
+    .normal_out(),
     .material_out(fifo_material)
   );
 

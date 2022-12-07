@@ -6,11 +6,13 @@ module triangle_clip (
   input wire rst_in,
 
   input wire valid_in,
-  input wire [3:0][31:0] vertex_in,
+  input wire [3:0][31:0] position_in,
+  input wire [2:0][31:0] normal_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
-  output logic [3:0][31:0] vertex_out,
+  output logic [3:0][31:0] position_out,
+  output logic [2:0][31:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -22,8 +24,8 @@ module triangle_clip (
         .clk_in,
         .rst_in,
         .valid_in,
-        .a_in(vertex_in[i]),
-        .b_in(vertex_in[3]),
+        .a_in(position_in[i]),
+        .b_in(position_in[3]),
         .valid_out(clip_bound_valids[i]),
         .c_out(clip_inbounds[i])
       );
@@ -31,17 +33,20 @@ module triangle_clip (
   endgenerate
 
   // the 4-component clip vertex
-  logic [3:0][31:0] clip_vertex;
+  logic [3:0][31:0] clip_position;
+  logic [2:0][31:0] clip_normal;
   logic [7:0] clip_material;
   always_ff @(posedge clk_in) begin
-    clip_vertex <= vertex_in;
+    clip_position <= position_in;
+    clip_normal <= normal_in;
     clip_material <= material_in;
   end
 
   logic triangle_inbounds;
   logic [1:0] vertex_index;
   logic [1:0] next_vertex;
-  logic [3:0][31:0] triangle_vertices [3];
+  logic [3:0][31:0] triangle_positions [3];
+  logic [2:0][31:0] triangle_normals [3];
   logic [7:0] triangle_materials [3];
   logic new_triangle;
   assign new_triangle = (&clip_bound_valids) && triangle_inbounds && vertex_index == 2'd2 && (&clip_inbounds); 
@@ -55,7 +60,8 @@ module triangle_clip (
     end else begin
       if (&clip_bound_valids) begin
         // store clip space vertex
-        triangle_vertices[vertex_index] <= clip_vertex;
+        triangle_positions[vertex_index] <= clip_position;
+        triangle_normals[vertex_index] <= clip_normal;
         triangle_materials[vertex_index] <= clip_material;
 
         // determine next vertex index
@@ -66,7 +72,8 @@ module triangle_clip (
 
           if (triangle_inbounds && (&clip_inbounds)) begin
             // set output if have a valid set of 3 inbounds vertices
-            vertex_out <= triangle_vertices[0];
+            position_out <= triangle_positions[0];
+            normal_out <= triangle_normals[0];
             material_out <= triangle_materials[0];
             valid_out <= 1'b1;
             next_vertex <= 2'b01; // send vertex 1 after vertex 0
@@ -80,7 +87,8 @@ module triangle_clip (
 
       // handle outputing vertices
       if (next_vertex != 2'b11) begin
-        vertex_out <= triangle_vertices[next_vertex];
+        position_out <= triangle_positions[next_vertex];
+        normal_out <= triangle_normals[next_vertex];
         material_out <= triangle_materials[next_vertex];
         valid_out <= 1'b1;
         next_vertex <= next_vertex + 1;
