@@ -7,12 +7,14 @@ module rasterizer (
 
   input wire valid_in,
   output logic ready_out,
-  input wire [3:0][31:0] vertex_in,
+  input wire [3:0][31:0] position_in,
+  input wire [2:0][31:0] normal_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
   output logic [15:0] triangle_id_out,
   output logic [2:0][16:0] fragment_out,
+  output logic [2:0][31:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -22,6 +24,7 @@ module rasterizer (
 
   logic [1:0] next_vertex;
   logic [2:0][16:0] vertices [3];
+  logic [2:0][31:0] normals [3];
   logic [11:0] materials [3];
 
   logic [16:0] x_lower_bound;
@@ -52,31 +55,32 @@ module rasterizer (
       Ready: begin
         if (valid_in) begin
           // x and y are fixed point [0, 512)
-          if (vertex_in[0][30:23] <= 8'd135) begin
-            floating_fracs[0] <= {1'(vertex_in[0][30:23] != 8'b0), vertex_in[0][22:0]};
-            conv_shifts[0] <= 5'(8'd135 - vertex_in[0][30:23]);
+          if (position_in[0][30:23] <= 8'd135) begin
+            floating_fracs[0] <= {1'(position_in[0][30:23] != 8'b0), position_in[0][22:0]};
+            conv_shifts[0] <= 5'(8'd135 - position_in[0][30:23]);
           end else begin
             floating_fracs[0] <= 24'hFFFFFF;
             conv_shifts[0] <= 5'd0;
           end
 
-          if (vertex_in[1][30:23] <= 8'd135) begin
-            floating_fracs[1] <= {1'(vertex_in[1][30:23] != 8'b0), vertex_in[1][22:0]};
-            conv_shifts[1] <= 5'(8'd135 - vertex_in[1][30:23]);
+          if (position_in[1][30:23] <= 8'd135) begin
+            floating_fracs[1] <= {1'(position_in[1][30:23] != 8'b0), position_in[1][22:0]};
+            conv_shifts[1] <= 5'(8'd135 - position_in[1][30:23]);
           end else begin
             floating_fracs[1] <= 24'hFFFFFF;
             conv_shifts[1] <= 5'd0;
           end
 
           // z is fixed point [0, 1)
-          if (vertex_in[2][30:23] <= 8'd126) begin
-            floating_fracs[2] <= {1'(vertex_in[2][30:23] != 8'b0), vertex_in[2][22:0]};
-            conv_shifts[2] <= 5'(8'd126 - vertex_in[2][30:23]);
+          if (position_in[2][30:23] <= 8'd126) begin
+            floating_fracs[2] <= {1'(position_in[2][30:23] != 8'b0), position_in[2][22:0]};
+            conv_shifts[2] <= 5'(8'd126 - position_in[2][30:23]);
           end else begin
             floating_fracs[2] <= 24'hFFFFFF;
             conv_shifts[2] <= 5'd0;
           end
 
+          normals[next_vertex] <= normal_in;
           materials[next_vertex] <= material_in;
 
           state <= Convert;
@@ -181,6 +185,16 @@ module rasterizer (
     .data_out(zs_buffered)
   );
 
+  logic [2:0][31:0] normal_buffered;
+  pipe #(
+    .LATENCY(33),
+    .WIDTH(96)
+  ) normal_pipe (
+    .clk_in,
+    .data_in(normals[0]),
+    .data_out(normal_buffered)
+  );
+
   logic [11:0] material_buffered;
   pipe #(
     .LATENCY(33),
@@ -237,17 +251,28 @@ module rasterizer (
     .data_out(point_interpolated)
   );
 
+  logic [2:0][31:0] normal_interpolated;
+  pipe #(
+    .LATENCY(4),
+    .WIDTH(96)
+  ) interp_normal_pipe (
+    .clk_in,
+    .data_in(normal_buffered),
+    .data_out(normal_interpolated)
+  );
+
   logic [11:0] material_interpolated;
   pipe #(
     .LATENCY(4),
     .WIDTH(12)
-  ) interp_color_pipe (
+  ) interp_material_pipe (
     .clk_in,
     .data_in(material_buffered),
     .data_out(material_interpolated)
   );
 
   assign fragment_out = {z_interpolated[32:16], point_interpolated};
+  assign normal_out = normal_interpolated;
   assign material_out = material_interpolated;
 
 endmodule

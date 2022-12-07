@@ -45,7 +45,7 @@ module top_level (
 
   logic [2:0][31:0] right, up, direction;
   logic [2:0][31:0] position;
-  assign position[1] = 32'h40000000;
+  assign position[1] = 32'h40800000;
   logic [1:0][1:0][11:0] debug_joystick_data;
   dual_joystick_smooth_ctrl ctrl (
     .clk(gpu_clk),
@@ -254,7 +254,8 @@ module top_level (
 
   // triangle fifo stage
   logic fifo_valid;
-  logic [3:0][31:0] fifo_vertex;
+  logic [3:0][31:0] fifo_position;
+  logic [2:0][31:0] fifo_normal;
   logic [11:0] fifo_material;
   logic rasterizer_ready;
   triangle_fifo triangle_fifo (
@@ -268,8 +269,8 @@ module top_level (
     .material_in(clip_material),
     .valid_out(fifo_valid),
     .ready_in(rasterizer_ready),
-    .position_out(fifo_vertex),
-    .normal_out(),
+    .position_out(fifo_position),
+    .normal_out(fifo_normal),
     .material_out(fifo_material)
   );
 
@@ -277,17 +278,20 @@ module top_level (
   logic fragment_valid;
   logic [15:0] triangle_id;
   logic [2:0][16:0] fragment;
+  logic [2:0][31:0] fragment_normal;
   logic [11:0] fragment_material;
   rasterizer rasterizer (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(fifo_valid),
     .ready_out(rasterizer_ready),
-    .vertex_in(fifo_vertex),
+    .position_in(fifo_position),
+    .normal_in(fifo_normal),
     .material_in(fifo_material),
     .valid_out(fragment_valid),
     .triangle_id_out(triangle_id),
     .fragment_out(fragment),
+    .normal_out(fragment_normal),
     .material_out(fragment_material)
   );
 
@@ -303,7 +307,7 @@ module top_level (
     .valid_in(fragment_valid),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
-    .normal_in({32'h3F13CD3A, 32'h3F13CD3A, 32'h3F13CD3A}),
+    .normal_in(fragment_normal),
     .material_in(fragment_material),
     .valid_out(pixel_valid),
     .x_out(pixel_x),

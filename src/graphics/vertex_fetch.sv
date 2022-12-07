@@ -81,7 +81,7 @@ module vertex_fetch (
     .INIT_FILE("./data/vertices.mem")
   ) vertex_brom (
     .addra(vertex_id[9:0]),
-    .dina(96'b0),
+    .dina(192'b0),
     .clka(clk_in),
     .wea(1'b0),
     .ena(1'b1),
