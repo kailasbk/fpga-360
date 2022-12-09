@@ -11,6 +11,7 @@ module barycentric (
 
   output logic valid_out,
   output logic [2:0] coeffs_negative_out,
+  output logic front_facing_out,
   output logic [2:0][25:0] coeffs_out
 );
 
@@ -72,11 +73,11 @@ module barycentric (
 
   pipe #(
     .LATENCY(26),
-    .WIDTH(3)
+    .WIDTH(4)
   ) coeff_negative_pipe (
     .clk_in,
-    .data_in({c_area_negative ^ full_area_negative, b_area_negative ^ full_area_negative, a_area_negative ^ full_area_negative}),
-    .data_out(coeffs_negative_out)
+    .data_in({c_area_negative ^ full_area_negative, b_area_negative ^ full_area_negative, a_area_negative ^ full_area_negative, !full_area_negative}),
+    .data_out({coeffs_negative_out, front_facing_out})
   );
 
   logic [25:0] a_coeff;

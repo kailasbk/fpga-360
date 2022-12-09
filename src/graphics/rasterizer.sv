@@ -153,6 +153,7 @@ module rasterizer (
 
   logic coeffs_valid;
   logic [2:0] coeffs_negative;
+  logic front_facing;
   logic [2:0][25:0] coeffs;
   barycentric barycentric (
     .clk_in,
@@ -162,6 +163,7 @@ module rasterizer (
     .vertices_in({vertices[2][1:0], vertices[1][1:0], vertices[0][1:0]}),
     .valid_out(coeffs_valid),
     .coeffs_negative_out(coeffs_negative),
+    .front_facing_out(front_facing),
     .coeffs_out(coeffs)
   );
 
@@ -208,7 +210,7 @@ module rasterizer (
   // INTERPOLATION SECTION
 
   logic fragment_valid;
-  assign fragment_valid = coeffs_valid && !(|coeffs_negative);
+  assign fragment_valid = coeffs_valid && !(|coeffs_negative) && front_facing;
 
   valid_pipe #(
     .LATENCY(4)
