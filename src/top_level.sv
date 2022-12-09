@@ -45,7 +45,6 @@ module top_level (
 
   logic [2:0][31:0] right, up, direction;
   logic [2:0][31:0] position;
-  assign position[1] = 32'h40800000;
   logic [1:0][1:0][11:0] debug_joystick_data;
   dual_joystick_smooth_ctrl ctrl (
     .clk(gpu_clk),
@@ -56,7 +55,7 @@ module top_level (
     .x_vec(right),
     .y_vec(up),
     .z_vec(direction),
-    .pos({position[2], position[0]})
+    .pos(position)
   );
   /*
   joystick_smooth_ctrl ctrl (

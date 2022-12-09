@@ -12,7 +12,7 @@ module dual_joystick_smooth_ctrl #(
                         output logic [2:0][VECTOR_B-1:0] x_vec,
                         output logic [2:0][VECTOR_B-1:0] y_vec,
                         output logic [2:0][VECTOR_B-1:0] z_vec,
-                        output logic [1:0][VECTOR_B-1:0] pos // [x, y]
+                        output logic [2:0][VECTOR_B-1:0] pos
                 );
 
   logic [15:0] adc_data;
@@ -44,13 +44,18 @@ module dual_joystick_smooth_ctrl #(
    logic [11:0] p;
    logic [31:0] pos_x;
    logic [31:0] pos_y;
+   logic [31:0] pos_z;
    logic [31:0] prev_pos_x;
    logic [31:0] prev_pos_y;
-   logic [31:0] delta_x;
-   logic [31:0] delta_y;
+   logic [31:0] prev_pos_z;
+   logic [31:0] left_a_scalar;
+   logic [31:0] left_b_scalar;
 
    assign pos[0] = pos_x;
    assign pos[1] = pos_y;
+   assign pos[2] = pos_z;
+
+   logic recalc_position;
 
    always_ff @(posedge clk) begin
 
@@ -62,6 +67,7 @@ module dual_joystick_smooth_ctrl #(
        p <= 12'b0;
        debug_joystick_data <= 48'b0;
        joy_s <= 1'b0;
+       recalc_position <= 1'b0;
      end else begin
 
         if (switch_counter == 16'b0) begin
@@ -86,6 +92,10 @@ module dual_joystick_smooth_ctrl #(
 
        if (counter == 21'b0) begin
          debug_joystick_data <= {left_vrx_data, left_vry_data, right_vrx_data, right_vry_data};
+
+         prev_pos_x <= pos_x;
+         prev_pos_y <= pos_y;
+         prev_pos_z <= pos_z;
 
          if (right_vry_data < 12'h100) begin //right joystick y
            p <= p - 6'd48;
@@ -116,60 +126,41 @@ module dual_joystick_smooth_ctrl #(
          end
 
          if (left_vrx_data < 12'h100) begin //left joystick x (upside down orientation on breadboard)
-           xpos_vin <= 1;
-           prev_pos_x <= pos_x;
-           delta_x <= 32'h3C23D70A;
+           left_a_scalar <= 32'h3C23D70A;
          end else if (left_vrx_data < 12'h200) begin
-           xpos_vin <= 1;
-           prev_pos_x <= pos_x;
-           delta_x <= 32'h3C23D70A;
+           left_a_scalar <= 32'h3C23D70A;
          end else if (left_vrx_data < 12'h300) begin
-           xpos_vin <= 1;
-           prev_pos_x <= pos_x;
-           delta_x <= 32'h3C23D70A;
+           left_a_scalar <= 32'h3C23D70A;
          end else if (left_vrx_data > 12'h700) begin
-           xpos_vin <= 1;
-           prev_pos_x <= pos_x;
-           delta_x <= 32'hBC23D70A;
+           left_a_scalar <= 32'hBC23D70A;
          end else if (left_vrx_data > 12'h600) begin
-           xpos_vin <= 1;
-           prev_pos_x <= pos_x;
-           delta_x <= 32'hBC23D70A;
+           left_a_scalar <= 32'hBC23D70A;
          end else if (left_vrx_data > 12'h500) begin
-           xpos_vin <= 1;
-           prev_pos_x <= pos_x;
-           delta_x <= 32'hBC23D70A;
+           left_a_scalar <= 32'hBC23D70A;
+         end else begin
+           left_a_scalar <= 32'h00000000;
          end
 
 	       if (left_vry_data < 12'h100) begin //left joystick y (upside down orientation on breadboard)
-           ypos_vin <= 1;
-           prev_pos_y <= pos_y;
-           delta_y <= 32'hBC23D70A;
+           left_b_scalar <= 32'hBC23D70A;
          end else if (left_vry_data < 12'h200) begin
-           ypos_vin <= 1;
-           prev_pos_y <= pos_y;
-           delta_y <= 32'hBC23D70A;
+           left_b_scalar <= 32'hBC23D70A;
          end else if (left_vry_data < 12'h300) begin
-           ypos_vin <= 1;
-           prev_pos_y <= pos_y;
-           delta_y <= 32'hBC23D70A;
+           left_b_scalar <= 32'hBC23D70A;
          end else if (left_vry_data > 12'h700) begin
-           ypos_vin <= 1;
-           prev_pos_y <= pos_y;
-           delta_y <= 32'h3C23D70A;
+           left_b_scalar <= 32'h3C23D70A;
          end else if (left_vry_data > 12'h600) begin
-           ypos_vin <= 1;
-           prev_pos_y <= pos_y;
-           delta_y <= 32'h3C23D70A;
+           left_b_scalar <= 32'h3C23D70A;
          end else if (left_vry_data > 12'h500) begin
-           ypos_vin <= 1;
-           prev_pos_y <= pos_y;
-           delta_y <= 32'h3C23D70A;
+           left_b_scalar <= 32'h3C23D70A;
+         end else begin
+           left_b_scalar <= 32'h00000000;
          end
 
+         recalc_position <= 1'b1;
+
        end else begin
-         xpos_vin <= 0;
-         ypos_vin <= 0;
+         recalc_position <= 1'b0;
        end
 
        counter <= counter + 21'b1; //update every 50ms
@@ -186,26 +177,96 @@ module dual_joystick_smooth_ctrl #(
       .z(z_vec)
       );
 
-  logic xpos_vin, ypos_vin, xpos_vout, ypos_vout;
-
-  fp32_add xpos_adder( //adder for x position from joystick left
+  logic scale_valid;
+  logic [2:0][31:0] scaled_X_vec;
+  fp32_scale scale_X_vec (//scale X directional vector using joystick left scalar
     .clk_in(clk),
     .rst_in(rst),
-    .valid_in(xpos_vin),
-    .a_in(prev_pos_x),
-    .b_in(delta_x),
-    .valid_out(xpos_vout),
+    .valid_in(recalc_position),
+    .a_in(x_vec),
+    .b_in(left_a_scalar),
+    .valid_out(scale_valid),
+    .c_out(scaled_X_vec)
+  );
+
+  logic [2:0][31:0] scaled_Z_vec;
+  fp32_scale scale_Z_vec (//scale Z directional vector using joystick left scalar
+    .clk_in(clk),
+    .rst_in(rst),
+    .valid_in(recalc_position),
+    .a_in(z_vec),
+    .b_in(left_b_scalar),
+    .valid_out(),
+    .c_out(scaled_Z_vec)
+  );
+
+  logic [31:0] sum_x_comp;
+  logic sum_x_comp_out;
+  fp32_add add_x_comp ( //adder for x components in scaled directional vectors
+    .clk_in(clk),
+    .rst_in(rst),
+    .valid_in(scale_valid),
+    .a_in(scaled_X_vec[0]),
+    .b_in(scaled_Z_vec[0]),
+    .valid_out(sum_x_comp_out),
+    .c_out(sum_x_comp)
+  );
+
+  logic [31:0] sum_y_comp;
+  logic sum_y_comp_out;
+  fp32_add add_y_comp ( //adder for y components in scaled directional vectors
+    .clk_in(clk),
+    .rst_in(rst),
+    .valid_in(scale_valid),
+    .a_in(scaled_X_vec[1]),
+    .b_in(scaled_Z_vec[1]),
+    .valid_out(sum_y_comp_out),
+    .c_out(sum_y_comp)
+  );
+
+  logic [31:0] sum_z_comp;
+  logic sum_z_comp_out;
+  fp32_add add_z_comp ( //adder for z components in scaled directional vectors
+    .clk_in(clk),
+    .rst_in(rst),
+    .valid_in(scale_valid),
+    .a_in(scaled_X_vec[2]),
+    .b_in(scaled_Z_vec[2]),
+    .valid_out(sum_z_comp_out),
+    .c_out(sum_z_comp)
+  );
+
+  logic pos_x_out;
+  fp32_add add_x_pos ( //adder for new x position based on previous position and scaled x components
+    .clk_in(clk),
+    .rst_in(rst),
+    .valid_in(sum_x_comp_out),
+    .a_in(sum_x_comp),
+    .b_in(prev_pos_x),
+    .valid_out(pos_x_out),
     .c_out(pos_x)
   );
 
-  fp32_add ypos_adder( //adder for x position from joystick right
+  logic pos_y_out;
+  fp32_add add_y_pos ( //adder for new y position based on previous position and scaled y components
     .clk_in(clk),
     .rst_in(rst),
-    .valid_in(ypos_vin),
-    .a_in(prev_pos_y),
-    .b_in(delta_y),
-    .valid_out(ypos_vout),
+    .valid_in(sum_y_comp_out),
+    .a_in(sum_y_comp),
+    .b_in(prev_pos_y),
+    .valid_out(pos_y_out),
     .c_out(pos_y)
+  );
+
+  logic pos_z_out;
+  fp32_add add_z_pos ( //adder for new z position based on previous position and scaled z components
+    .clk_in(clk),
+    .rst_in(rst),
+    .valid_in(sum_z_comp_out),
+    .a_in(sum_z_comp),
+    .b_in(prev_pos_z),
+    .valid_out(pos_z_out),
+    .c_out(pos_z)
   );
 
 endmodule
