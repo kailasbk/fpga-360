@@ -8,14 +8,14 @@ module triangle_fifo (
   input wire position_valid_in,
   input wire [3:0][31:0] position_in,
   input wire normal_valid_in,
-  input wire [2:0][31:0] normal_in,
+  input wire [11:0] normal_in,
   input wire material_valid_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
   input wire ready_in,
   output logic [3:0][31:0] position_out,
-  output logic [2:0][31:0] normal_out,
+  output logic [11:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -92,7 +92,7 @@ module triangle_fifo (
   );
 
   xilinx_dual_port_ram #(
-    .RAM_WIDTH(96),
+    .RAM_WIDTH(12),
     .RAM_DEPTH(1024)
   ) normal_ram (
     .addra(normal_write_ptr),

@@ -8,8 +8,11 @@ module fragment_shader (
   input wire valid_in,
   input wire [15:0] triangle_id_in,
   input wire [2:0][16:0] fragment_in,
-  input wire [2:0][31:0] normal_in,
+  input wire [11:0] normal_id_in,
   input wire [11:0] material_in,
+
+  output logic [11:0] normal_id_out,
+  input wire [2:0][31:0] normal_in,
 
   output logic valid_out,
   output logic [8:0] x_out,
@@ -17,6 +20,9 @@ module fragment_shader (
   output logic [15:0] z_out,
   output logic [11:0] rgb_out
 );
+
+  // note: while techinally normal_in is technically late by 2 cycles, this doesn't cause major issues
+  assign normal_id_out = normal_id_in;
 
   logic [2:0][31:0] light_dir;
   assign light_dir[0] = 32'h3F13CD3A;

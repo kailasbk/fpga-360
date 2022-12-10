@@ -7,12 +7,12 @@ module triangle_clip (
 
   input wire valid_in,
   input wire [3:0][31:0] position_in,
-  input wire [2:0][31:0] normal_in,
+  input wire [11:0] normal_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
   output logic [3:0][31:0] position_out,
-  output logic [2:0][31:0] normal_out,
+  output logic [11:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -34,8 +34,8 @@ module triangle_clip (
 
   // the 4-component clip vertex
   logic [3:0][31:0] clip_position;
-  logic [2:0][31:0] clip_normal;
-  logic [7:0] clip_material;
+  logic [11:0] clip_normal;
+  logic [11:0] clip_material;
   always_ff @(posedge clk_in) begin
     clip_position <= position_in;
     clip_normal <= normal_in;
@@ -46,8 +46,8 @@ module triangle_clip (
   logic [1:0] vertex_index;
   logic [1:0] next_vertex;
   logic [3:0][31:0] triangle_positions [3];
-  logic [2:0][31:0] triangle_normals [3];
-  logic [7:0] triangle_materials [3];
+  logic [11:0] triangle_normals [3];
+  logic [11:0] triangle_materials [3];
   logic new_triangle;
   assign new_triangle = (&clip_bound_valids) && triangle_inbounds && vertex_index == 2'd2 && (&clip_inbounds); 
 

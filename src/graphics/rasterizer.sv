@@ -8,13 +8,13 @@ module rasterizer (
   input wire valid_in,
   output logic ready_out,
   input wire [3:0][31:0] position_in,
-  input wire [2:0][31:0] normal_in,
+  input wire [11:0] normal_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
   output logic [15:0] triangle_id_out,
   output logic [2:0][16:0] fragment_out,
-  output logic [2:0][31:0] normal_out,
+  output logic [11:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -24,7 +24,7 @@ module rasterizer (
 
   logic [1:0] next_vertex;
   logic [2:0][16:0] vertices [3];
-  logic [2:0][31:0] normals [3];
+  logic [11:0] normals [3];
   logic [11:0] materials [3];
 
   logic [16:0] x_lower_bound;
@@ -187,10 +187,10 @@ module rasterizer (
     .data_out(zs_buffered)
   );
 
-  logic [2:0][31:0] normal_buffered;
+  logic [11:0] normal_buffered;
   pipe #(
     .LATENCY(33),
-    .WIDTH(96)
+    .WIDTH(12)
   ) normal_pipe (
     .clk_in,
     .data_in(normals[0]),
@@ -253,10 +253,10 @@ module rasterizer (
     .data_out(point_interpolated)
   );
 
-  logic [2:0][31:0] normal_interpolated;
+  logic [11:0] normal_interpolated;
   pipe #(
     .LATENCY(4),
-    .WIDTH(96)
+    .WIDTH(12)
   ) interp_normal_pipe (
     .clk_in,
     .data_in(normal_buffered),

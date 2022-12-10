@@ -173,17 +173,36 @@ module top_level (
     .col_out(matrix_col)
   );
 
+  logic [11:0] memory_index_id;
+  logic [2:0][11:0] memory_index;
+  logic [11:0] memory_position_id;
+  logic [2:0][31:0] memory_position;
+  logic [11:0] memory_normal_id;
+  logic [2:0][31:0] memory_normal;
+  model_memory model_memory (
+    .clk_in(gpu_clk),
+    .rst_in,
+    .index_id_in(memory_index_id),
+    .index_out(memory_index),
+    .position_id_in(memory_position_id),
+    .position_out(memory_position),
+    .normal_id_in(memory_normal_id),
+    .normal_out(memory_normal)
+  );
+
   // vertex fetch stage
   logic fetch_valid;
-  logic [11:0] fetch_id;
   logic [2:0][31:0] fetch_position;
-  logic [2:0][31:0] fetch_normal;
+  logic [11:0] fetch_normal;
   logic [11:0] fetch_material;
   vertex_fetch vertex_fetch (
     .clk_in(gpu_clk),
     .rst_in(rst_in || fetch_rst),
+    .index_id_out(memory_index_id),
+    .index_in(memory_index),
+    .position_id_out(memory_position_id),
+    .position_in(memory_position),
     .valid_out(fetch_valid),
-    .index_id_out(fetch_id),
     .position_out(fetch_position),
     .normal_out(fetch_normal),
     .material_out(fetch_material)
@@ -192,7 +211,7 @@ module top_level (
   // vertex shader stage
   logic shader_valid;
   logic [3:0][31:0] shader_position;
-  logic [2:0][31:0] shader_normal;
+  logic [11:0] shader_normal;
   logic [11:0] shader_material;
   vertex_shader vertex_shader (
     .clk_in(gpu_clk),
@@ -212,7 +231,7 @@ module top_level (
   // triangle clipping stage
   logic clip_valid;
   logic [3:0][31:0] clip_position;
-  logic [2:0][31:0] clip_normal;
+  logic [11:0] clip_normal;
   logic [11:0] clip_material;
   triangle_clip triangle_clip (
     .clk_in(gpu_clk),
@@ -254,7 +273,7 @@ module top_level (
   // triangle fifo stage
   logic fifo_valid;
   logic [3:0][31:0] fifo_position;
-  logic [2:0][31:0] fifo_normal;
+  logic [11:0] fifo_normal;
   logic [11:0] fifo_material;
   logic rasterizer_ready;
   triangle_fifo triangle_fifo (
@@ -277,7 +296,7 @@ module top_level (
   logic fragment_valid;
   logic [15:0] triangle_id;
   logic [2:0][16:0] fragment;
-  logic [2:0][31:0] fragment_normal;
+  logic [11:0] fragment_normal;
   logic [11:0] fragment_material;
   rasterizer rasterizer (
     .clk_in(gpu_clk),
@@ -306,8 +325,10 @@ module top_level (
     .valid_in(fragment_valid),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
-    .normal_in(fragment_normal),
+    .normal_id_in(fragment_normal),
     .material_in(fragment_material),
+    .normal_id_out(memory_normal_id),
+    .normal_in(memory_normal),
     .valid_out(pixel_valid),
     .x_out(pixel_x),
     .y_out(pixel_y),

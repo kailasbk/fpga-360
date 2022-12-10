@@ -10,12 +10,12 @@ module vertex_shader (
   
   input wire valid_in,
   input wire [2:0][31:0] position_in,
-  input wire [2:0][31:0] normal_in,
+  input wire [11:0] normal_in,
   input wire [11:0] material_in,
 
   output logic valid_out,
   output logic [3:0][31:0] position_out,
-  output logic [2:0][31:0] normal_out,
+  output logic [11:0] normal_out,
   output logic [11:0] material_out
 );
 
@@ -143,7 +143,7 @@ module vertex_shader (
 
   pipe #(
     .LATENCY(25),
-    .WIDTH(96)
+    .WIDTH(12)
   ) normal_pipe (
     .clk_in,
     .data_in(normal_in),
