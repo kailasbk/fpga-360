@@ -1,31 +1,32 @@
 import struct
+import sys
 
-def hex_from_float(f):
-    return hex(struct.unpack('I', struct.pack('f', f))[0]).upper()[2:].zfill(8)
+def hex_from_float(f, l):
+    return hex(struct.unpack('I', struct.pack('f', f))[0]).upper()[2:].zfill(l)
 
-def hex_from_tuple(t):
-    strs = [hex_from_float(v) for v in t[::-1]]
+def hex_from_int(i, l):
+    return hex(struct.unpack('I', struct.pack('i', i))[0]).upper()[2:].zfill(l)
+
+def hex_from_tuple(t, l=8):
+    if (isinstance(t[0], float)):
+        strs = [hex_from_float(v, l) for v in t[::-1]]
+    else:
+        strs = [hex_from_int(v, l) for v in t]
     return '_'.join(strs)
 
-f = open('./data/model.obj', 'r')
+name = sys.argv[1]
+
+f = open(f'./models/{name}.obj', 'r')
 lines = [line.split() for line in f]
 
 positions = []
 normals = []
+
 triangles = []
 
-vertex_map = {}
-vertices = []
-
 def make_vertex(key):
-    global vertices
-    if key in vertex_map:
-        return vertex_map[key]
-    else:
-        vertex_map[key] = len(vertices)
-        pos, norm = [int(el) for el in key.split('//')]
-        vertices += [(positions[pos-1], normals[norm-1])]
-        return vertex_map[key]
+    pos, norm = [int(el) for el in key.split('//')]
+    return (pos-1, norm-1)
 
 for line in lines:
     if line[0] == 'v':
@@ -38,17 +39,26 @@ for line in lines:
         triangles += [tuple(make_vertex(el) for el in line[1:4])]
 
 contents = ''
-for vertex in vertices:
-    contents += hex_from_tuple(vertex[0]) + '__' + hex_from_tuple(vertex[1]) + '\n'
+for pos in positions:
+    contents += hex_from_tuple(pos) + '\n'
 
-contents += 'FFFFFFFF_FFFFFFFF_FFFFFFFF__FFFFFFFF_FFFFFFFF_FFFFFFFF\n'
+contents += 'FFFFFFFF_FFFFFFFF_FFFFFFFF\n'
 
-f = open('./data/vertices.mem', 'w')
+f = open('./data/positions.mem', 'w')
+f.write(contents)
+f.close()
+
+contents = ''
+for norm in normals:
+    contents += hex_from_tuple(norm) + '\n'
+
+contents += 'FFFFFFFF_FFFFFFFF_FFFFFFFF\n'
+
+f = open('./data/normals.mem', 'w')
 f.write(contents)
 f.close()
 
 def get_material(index):
-    index = index // 2
     index = index % 6
     index = index + 1
     return index
@@ -57,10 +67,10 @@ contents = ''
 tri_index = 0
 for triangle in triangles:
     for index in triangle:
-        contents += hex(index)[2:].upper().zfill(3) + '_' + hex(get_material(tri_index))[2:].upper().zfill(3) + '\n'
+        contents += hex_from_tuple(index, 3) + '_' + hex(get_material(tri_index))[2:].upper().zfill(3) + '\n'
     tri_index += 1
 
-contents += 'FFF_FFF\n'
+contents += 'FFF_FFF_FFF\n'
 
 f = open('./data/indices.mem', 'w')
 f.write(contents)

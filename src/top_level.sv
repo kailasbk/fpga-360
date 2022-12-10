@@ -175,7 +175,7 @@ module top_level (
 
   // vertex fetch stage
   logic fetch_valid;
-  logic [15:0] fetch_id;
+  logic [11:0] fetch_id;
   logic [2:0][31:0] fetch_position;
   logic [2:0][31:0] fetch_normal;
   logic [11:0] fetch_material;
@@ -183,7 +183,7 @@ module top_level (
     .clk_in(gpu_clk),
     .rst_in(rst_in || fetch_rst),
     .valid_out(fetch_valid),
-    .vertex_id_out(fetch_id),
+    .index_id_out(fetch_id),
     .position_out(fetch_position),
     .normal_out(fetch_normal),
     .material_out(fetch_material)
