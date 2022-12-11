@@ -14,7 +14,10 @@ module model_memory (
   output logic [2:0][31:0] position_out,
 
   input wire [11:0] normal_id_in,
-  output logic [2:0][31:0] normal_out
+  output logic [2:0][31:0] normal_out,
+
+  input wire [11:0] material_id_in,
+  output logic [2:0][31:0] material_out
 );
 
   xilinx_single_port_ram #(
@@ -61,6 +64,33 @@ module model_memory (
     .regcea(1'b1),
     .douta(normal_out)
   );
+
+  logic [2:0][31:0] materials [8];
+  /*
+  assign materials[0] = {32'h00000000, 32'h00000000, 32'h00000000};
+  assign materials[1] = {32'h3F800000, 32'h00000000, 32'h00000000};
+  assign materials[2] = {32'h00000000, 32'h3F800000, 32'h00000000};
+  assign materials[3] = {32'h00000000, 32'h00000000, 32'h3F800000};
+  assign materials[4] = {32'h3F800000, 32'h3F800000, 32'h00000000};
+  assign materials[5] = {32'h00000000, 32'h3F800000, 32'h3F800000};
+  assign materials[6] = {32'h3F800000, 32'h00000000, 32'h3F800000};
+  assign materials[7] = {32'h3F800000, 32'h3F800000, 32'h3F800000};
+  */
+  assign materials[0] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[1] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[2] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[3] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[4] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[5] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[6] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  assign materials[7] = {32'h3F400000, 32'h3F400000, 32'h3F400000};
+  /*
+  initial begin
+    $readmemh("./data/materials.mem", materials);
+  end
+  */
+
+  assign material_out = materials[material_id_in[2:0]];
 
 endmodule
 

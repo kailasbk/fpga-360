@@ -10,10 +10,12 @@ module fragment_shader (
   input wire [15:0] triangle_id_in,
   input wire [2:0][16:0] fragment_in,
   input wire [11:0] normal_id_in,
-  input wire [11:0] material_in,
+  input wire [11:0] material_id_in,
 
   output logic [11:0] normal_id_out,
   input wire [2:0][31:0] normal_in,
+  output logic [11:0] material_id_out,
+  input wire [2:0][31:0] material_in,
 
   output logic valid_out,
   output logic [8:0] x_out,
@@ -24,19 +26,10 @@ module fragment_shader (
 
   // note: while techinally normal_in is technically late by 2 cycles, this doesn't cause major issues
   assign normal_id_out = normal_id_in;
+  assign material_id_out = material_id_in;
 
   logic [31:0] ambient_intensity;
   assign ambient_intensity = 32'h3DCCCCCD; // 0.1 ambient level
-
-  logic [2:0][31:0] materials [8];
-  assign materials[0] = {32'h00000000, 32'h00000000, 32'h00000000};
-  assign materials[1] = {32'h3F800000, 32'h00000000, 32'h00000000};
-  assign materials[2] = {32'h00000000, 32'h3F800000, 32'h00000000};
-  assign materials[3] = {32'h00000000, 32'h00000000, 32'h3F800000};
-  assign materials[4] = {32'h3F800000, 32'h3F800000, 32'h00000000};
-  assign materials[5] = {32'h00000000, 32'h3F800000, 32'h3F800000};
-  assign materials[6] = {32'h3F800000, 32'h00000000, 32'h3F800000};
-  assign materials[7] = {32'h3F800000, 32'h3F800000, 32'h3F800000};
 
   logic [2:0][31:0] albedo;
   logic [8:0] x;
@@ -49,7 +42,7 @@ module fragment_shader (
       x <= fragment_in[0][16:8];
       y <= fragment_in[1][15:8];
       z <= fragment_in[2][16:1];
-      albedo <= materials[material_in[2:0]];
+      albedo <= material_in;
     end
   end
 

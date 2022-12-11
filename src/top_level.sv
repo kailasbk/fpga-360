@@ -49,6 +49,7 @@ module top_level (
   dual_joystick_smooth_ctrl ctrl (
     .clk(gpu_clk),
     .rst(rst_in),
+    .btnr,
     .vjoyp3, .vjoyn3, .vjoyp11, .vjoyn11,
     .joy_s,
     .debug_joystick_data,
@@ -179,6 +180,8 @@ module top_level (
   logic [2:0][31:0] memory_position;
   logic [11:0] memory_normal_id;
   logic [2:0][31:0] memory_normal;
+  logic [11:0] memory_material_id;
+  logic [2:0][31:0] memory_material;
   model_memory model_memory (
     .clk_in(gpu_clk),
     .rst_in,
@@ -187,7 +190,9 @@ module top_level (
     .position_id_in(memory_position_id),
     .position_out(memory_position),
     .normal_id_in(memory_normal_id),
-    .normal_out(memory_normal)
+    .normal_out(memory_normal),
+    .material_id_in(memory_material_id),
+    .material_out(memory_material)
   );
 
   // vertex fetch stage
@@ -322,14 +327,19 @@ module top_level (
   fragment_shader fragment_shader (
     .clk_in(gpu_clk),
     .rst_in,
+
     .valid_in(fragment_valid),
     .light_direction(direction),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
     .normal_id_in(fragment_normal),
-    .material_in(fragment_material),
+    .material_id_in(fragment_material),
+
     .normal_id_out(memory_normal_id),
     .normal_in(memory_normal),
+    .material_id_out(memory_material_id),
+    .material_in(memory_material),
+
     .valid_out(pixel_valid),
     .x_out(pixel_x),
     .y_out(pixel_y),
