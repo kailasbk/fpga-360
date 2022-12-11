@@ -6,6 +6,7 @@ module fragment_shader (
   input wire rst_in,
 
   input wire valid_in,
+  input wire [2:0][31:0] light_direction,
   input wire [15:0] triangle_id_in,
   input wire [2:0][16:0] fragment_in,
   input wire [11:0] normal_id_in,
@@ -24,13 +25,8 @@ module fragment_shader (
   // note: while techinally normal_in is technically late by 2 cycles, this doesn't cause major issues
   assign normal_id_out = normal_id_in;
 
-  logic [2:0][31:0] light_dir;
-  assign light_dir[0] = 32'h3F13CD3A;
-  assign light_dir[1] = 32'h3F13CD3A;
-  assign light_dir[2] = 32'h3F13CD3A;
-
   logic [31:0] ambient_intensity;
-  assign ambient_intensity = 32'h3E99999A;
+  assign ambient_intensity = 32'h3DCCCCCD; // 0.1 ambient level
 
   logic [2:0][31:0] materials [8];
   assign materials[0] = {32'h00000000, 32'h00000000, 32'h00000000};
@@ -83,7 +79,7 @@ module fragment_shader (
     .rst_in,
     .valid_in,
     .a_in({32'h00000000, normal_in}),
-    .b_in({32'h00000000, light_dir}),
+    .b_in({32'h00000000, light_direction}),
     .valid_out(dot_valid),
     .c_out(diffuse_intensity)
   );

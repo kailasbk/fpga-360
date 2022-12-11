@@ -19,10 +19,10 @@ module triangle_fifo (
   output logic [11:0] material_out
 );
 
-  logic [9:0] position_write_ptr;
-  logic [9:0] normal_write_ptr;
-  logic [9:0] material_write_ptr;
-  logic [9:0] read_ptr;
+  logic [11:0] position_write_ptr;
+  logic [11:0] normal_write_ptr;
+  logic [11:0] material_write_ptr;
+  logic [11:0] read_ptr;
 
   logic non_empty;
   assign non_empty = (position_write_ptr != read_ptr) && (normal_write_ptr != read_ptr) && (material_write_ptr != read_ptr);
@@ -31,10 +31,10 @@ module triangle_fifo (
 
   always_ff @(posedge clk_in) begin
     if (rst_in) begin
-      position_write_ptr <= 10'd0;
-      normal_write_ptr <= 10'd0;
-      material_write_ptr <= 10'd0;
-      read_ptr <= 10'd0;
+      position_write_ptr <= 12'd0;
+      normal_write_ptr <= 12'd0;
+      material_write_ptr <= 12'd0;
+      read_ptr <= 12'd0;
       lock <= 1'b0;
       read_valid <= 1'b0;
       valid_out <= 1'b0;
@@ -72,7 +72,7 @@ module triangle_fifo (
 
   xilinx_dual_port_ram #(
     .RAM_WIDTH(128),
-    .RAM_DEPTH(1024)
+    .RAM_DEPTH(4096)
   ) vertex_ram (
     .addra(position_write_ptr),
     .addrb(read_ptr),
@@ -93,7 +93,7 @@ module triangle_fifo (
 
   xilinx_dual_port_ram #(
     .RAM_WIDTH(12),
-    .RAM_DEPTH(1024)
+    .RAM_DEPTH(4096)
   ) normal_ram (
     .addra(normal_write_ptr),
     .addrb(read_ptr),
@@ -114,7 +114,7 @@ module triangle_fifo (
 
   xilinx_dual_port_ram #(
     .RAM_WIDTH(12),
-    .RAM_DEPTH(1024)
+    .RAM_DEPTH(4096)
   ) material_ram (
     .addra(material_write_ptr),
     .addrb(read_ptr),

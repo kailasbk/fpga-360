@@ -323,6 +323,7 @@ module top_level (
     .clk_in(gpu_clk),
     .rst_in,
     .valid_in(fragment_valid),
+    .light_direction(direction),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
     .normal_id_in(fragment_normal),
