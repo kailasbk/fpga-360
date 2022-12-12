@@ -5,7 +5,7 @@ module vertex_fetch (
   input wire clk_in,
   input wire rst_in,
 
-  output logic [11:0] index_id_out,
+  output logic [15:0] index_id_out,
   input wire [2:0][11:0] index_in,
   output logic [11:0] position_id_out,
   input wire [2:0][31:0] position_in,
@@ -30,7 +30,7 @@ module vertex_fetch (
     .valid_out(index_valid)
   );
 
-  logic [11:0] index_id;
+  logic [15:0] index_id;
   always_ff @(posedge clk_in) begin
     if (rst_in) begin
       index_id <= 10'b0;

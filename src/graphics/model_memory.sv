@@ -7,7 +7,7 @@ module model_memory (
 
   // inputs to write from uart
 
-  input wire [11:0] index_id_in,
+  input wire [15:0] index_id_in,
   output logic [2:0][11:0] index_out,
 
   input wire [11:0] position_id_in,
@@ -22,10 +22,10 @@ module model_memory (
 
   xilinx_single_port_ram #(
     .RAM_WIDTH(36),
-    .RAM_DEPTH(4096),
+    .RAM_DEPTH(8192),
     .INIT_FILE("./data/indices.mem")
   ) index_brom (
-    .addra(index_id_in),
+    .addra(index_id_in[12:0]),
     .dina(36'b0),
     .clka(clk_in),
     .wea(1'b0),
@@ -37,10 +37,10 @@ module model_memory (
 
   xilinx_single_port_ram #(
     .RAM_WIDTH(96),
-    .RAM_DEPTH(1024),
+    .RAM_DEPTH(2048),
     .INIT_FILE("./data/positions.mem")
   ) position_brom (
-    .addra(position_id_in[9:0]),
+    .addra(position_id_in[10:0]),
     .dina(96'b0),
     .clka(clk_in),
     .wea(1'b0),
@@ -52,10 +52,10 @@ module model_memory (
 
   xilinx_single_port_ram #(
     .RAM_WIDTH(96),
-    .RAM_DEPTH(1024),
+    .RAM_DEPTH(2048),
     .INIT_FILE("./data/normals.mem")
   ) normal_brom (
-    .addra(normal_id_in[9:0]),
+    .addra(normal_id_in[10:0]),
     .dina(96'b0),
     .clka(clk_in),
     .wea(1'b0),
@@ -65,12 +65,12 @@ module model_memory (
     .douta(normal_out)
   );
 
-  logic [95:0] materials [8];
+  logic [95:0] materials [32];
   initial begin
     $readmemh("./data/materials.mem", materials);
   end
 
-  assign material_out = materials[material_id_in[2:0]];
+  assign material_out = materials[material_id_in[4:0]];
 
 endmodule
 

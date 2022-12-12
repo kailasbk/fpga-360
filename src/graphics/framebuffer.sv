@@ -58,7 +58,7 @@ module framebuffer (
         clear <= 1'b1;
         z <= 16'hFFFF;
         write_address <= (clear_y * 9'd320) + clear_x;
-        rgb <= 8'h00;
+        rgb <= 12'h222;
       end
       Write: begin
         if (switch_in) begin

@@ -142,7 +142,7 @@ module top_level (
     .col_out(matrix_col)
   );
 
-  logic [11:0] memory_index_id;
+  logic [15:0] memory_index_id;
   logic [2:0][11:0] memory_index;
   logic [11:0] memory_position_id;
   logic [2:0][31:0] memory_position;
