@@ -89,3 +89,13 @@ contents += 'FFF_FFF_FFF\n'
 f = open('./data/indices.mem', 'w')
 f.write(contents)
 f.close()
+
+contents = ''
+for material in materials:
+    contents += hex_from_tuple(material, 3) + '\n'
+
+contents += 'FFFFFFFF_FFFFFFFF_FFFFFFFF\n'
+
+f = open('./data/materials.mem', 'w')
+f.write(contents)
+f.close()

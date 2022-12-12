@@ -58,38 +58,6 @@ module top_level (
     .z_vec(direction),
     .pos(position)
   );
-  /*
-  joystick_smooth_ctrl ctrl (
-    .clk(gpu_clk),
-    .rst(rst_in),
-    .vjoyp3, .vjoyn3, .vjoyp11, .vjoyn11,
-    .debug_joystick_data,
-    .x_vec(right),
-    .y_vec(up),
-    .z_vec(direction)
-  );
-
-  logic [31:0] scale;
-  always_ff @(posedge gpu_clk) begin
-    case (sw[2:1])
-      2'b00: scale <= 32'h40400000;
-      2'b01: scale <= 32'h40A00000;
-      2'b10: scale <= 32'h40E00000;
-      2'b11: scale <= 32'h41100000;
-    endcase
-  end
-
-  logic [2:0][31:0] position;
-  fp32_scale direction_scale (
-    .clk_in,
-    .rst_in,
-    .valid_in(1'b1),
-    .a_in(direction),
-    .b_in(scale),
-    .valid_out(),
-    .c_out(position)
-  );
-  */
 
   // GRAPHICS LOGIC
 
