@@ -100,18 +100,18 @@ module framebuffer (
   );
 
   logic write_valid;
-  assign write_valid = (valid_buffered && z_buffered < depth) || clear_buffered;
-
-  logic [15:0] depth;
+  logic [13:0] depth;
   depth_ram depth_ram (
     .clka(gpu_clk_in),
     .wea(write_valid),
     .addra(write_address_buffered),
-    .dina(z_buffered),
+    .dina(z_buffered[15:2]),
     .clkb(gpu_clk_in),
     .addrb(write_address),
     .doutb(depth)
   );
+
+  assign write_valid = (valid_buffered && z_buffered[15:2] < depth) || clear_buffered;
 
   logic [9:0] hcount;
   logic [9:0] vcount;
