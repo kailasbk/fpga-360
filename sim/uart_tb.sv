@@ -1,21 +1,23 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-`include "src/util/uart_receiver.sv"
+`include "src/util/uart.sv"
 
-module uart_receiver_tb;
+module uart_tb;
 
   logic clk_in;
   logic rst_in;
 
   logic rx_in;
+  logic tx_out;
   logic valid_out;
   logic [7:0] byte_out;
 
-  uart_receiver uut (
+  uart uut (
     .clk_in,
     .rst_in,
     .rx_in,
+    .tx_out,
     .valid_out,
     .byte_out
   );
@@ -27,7 +29,7 @@ module uart_receiver_tb;
 
   initial begin
     $dumpfile("waveform.lxt");
-    $dumpvars(3, uart_receiver_tb);
+    $dumpvars(3, uart_tb);
     clk_in = 0;
     rst_in = 0;
     rx_in = 1;

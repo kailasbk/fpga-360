@@ -12,6 +12,7 @@ module vertex_fetch (
 
   output logic valid_out,
   output logic [2:0][31:0] position_out,
+  output logic [11:0] debug_position_id_out,
   output logic [11:0] normal_out,
   output logic [11:0] material_out
 );
@@ -33,12 +34,12 @@ module vertex_fetch (
   logic [15:0] index_id;
   always_ff @(posedge clk_in) begin
     if (rst_in) begin
-      index_id <= 10'b0;
+      index_id <= 16'd0;
       state <= Reading;
     end else case (state)
       Reading: begin
         index_id <= index_id + 1;
-        if (index_valid && position_id_out == 12'hFFF) begin
+        if (index_valid && index_in[0] == 12'hFFF) begin
           state <= Done;
         end
       end
@@ -55,7 +56,7 @@ module vertex_fetch (
   ) vertex_valid_pipe (
     .clk_in,
     .rst_in,
-    .valid_in(state != Done && index_valid && position_id_out != 12'hFFF),
+    .valid_in(state != Done && index_valid && index_in[0] != 12'hFFF),
     .valid_out
   );
 
@@ -64,6 +65,15 @@ module vertex_fetch (
   // outputs to graphics pipeline
 
   assign position_out = position_in;
+
+  pipe #(
+    .LATENCY(2),
+    .WIDTH(12)
+  ) debug_pos_pipe (
+    .clk_in,
+    .data_in(index_in[2]),
+    .data_out(debug_position_id_out)
+  );
 
   pipe #(
     .LATENCY(2),

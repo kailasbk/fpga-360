@@ -7,6 +7,8 @@ module top_level (
   input wire [15:0] sw,
   input wire btnc, btnu, btnl, btnr, btnd,
   input wire vjoyp3, vjoyn3, vjoyp11, vjoyn11,
+  input wire uart_txd_in,
+  output logic uart_rxd_out,
   output logic joy_s,
   output logic [15:0] led,
   output logic [6:0] ca,
@@ -29,10 +31,23 @@ module top_level (
   assign rst_in = sw[15];
   assign led[15] = rst_in;
 
+  logic pause;
+  assign pause = sw[14];
+
+  logic rx_in;
+  assign rx_in = uart_txd_in;
+
+  logic tx_out;
+  assign uart_rxd_out = tx_out;
+
+  logic skylight;
+  assign skylight = sw[13];
+
+  logic crosshair_in;
+  assign crosshair_in = sw[12];
+
   logic [15:0] upper_count;
   logic [15:0] lower_count;
-  logic [15:0] pixel_count;
-  logic [15:0] frame_count;
   seven_segment_controller ssc (
     .clk_in(gpu_clk),
     .rst_in,
@@ -61,24 +76,29 @@ module top_level (
 
   // GRAPHICS LOGIC
 
-  enum {WaitStart, WaitBuffer, UpdateCounters, WaitEnd} state;
+  enum {WaitBuffer, UpdateCounters, WaitEnd} state;
 
   logic [21:0] timer;
 
-  logic fetch_rst;
+  logic pipeline_rst;
   logic matrix_rst;
   logic framebuffer_clear;
   logic framebuffer_switch;
   logic framebuffer_ready;
 
+  logic [15:0] pixel_count;
+  logic [15:0] vertex_count;
+  logic [15:0] frame_count;
+
   always_ff @(posedge gpu_clk) begin
     if (rst_in) begin
       timer <= 22'd0;
-      fetch_rst <= 1'b1;
+      pipeline_rst <= 1'b1;
       matrix_rst <= 1'b0;
       framebuffer_switch <= 1'b0;
       framebuffer_clear <= 1'b1;
       pixel_count <= 16'd0;
+      vertex_count <= 16'd0;
       frame_count <= 16'd0;
       state <= WaitEnd;
     end else begin
@@ -86,20 +106,14 @@ module top_level (
         WaitBuffer: begin
           matrix_rst <= 1'b0;
           if (framebuffer_ready) begin
-            fetch_rst <= 1'b0;
+            pipeline_rst <= 1'b0;
             state <= UpdateCounters;
           end
         end
         UpdateCounters: begin
           pixel_count <= 0;
+          vertex_count <= 0;
           frame_count <= frame_count + 1;
-          if (sw[1]) begin
-            lower_count <= debug_joystick_data[1][0];
-            upper_count <= debug_joystick_data[1][1];
-          end else begin
-            lower_count <= debug_joystick_data[0][0];
-            upper_count <= debug_joystick_data[0][1];
-          end
           state <= WaitEnd;
         end
         WaitEnd: begin
@@ -107,16 +121,22 @@ module top_level (
             pixel_count <= pixel_count + 1;
           end
 
-          if (!framebuffer_ready && timer > 100) begin // temp fix: add valids to ctrl
-            //upper_count <= pixel_count;
+          if (fetch_valid) begin
+            vertex_count <= vertex_count + 1;
+          end
+
+          if (!framebuffer_ready && timer > 100) begin
             matrix_rst <= 1'b1;
-            fetch_rst <= 1'b1;
+            pipeline_rst <= 1'b1;
             state <= WaitBuffer;
           end
         end
       endcase
 
-      if (timer == 22'd2_000_000) begin
+      if (pause) begin
+        framebuffer_switch <= 1'b0;
+        framebuffer_clear <= 1'b0;
+      end else if (timer == 22'd2_000_000) begin
         timer <= 22'd0;
         framebuffer_switch <= 1'b1;
         framebuffer_clear <= 1'b1;
@@ -153,6 +173,8 @@ module top_level (
   model_memory model_memory (
     .clk_in(gpu_clk),
     .rst_in,
+    .rx_in,
+    .tx_out,
     .index_id_in(memory_index_id),
     .index_out(memory_index),
     .position_id_in(memory_position_id),
@@ -166,17 +188,19 @@ module top_level (
   // vertex fetch stage
   logic fetch_valid;
   logic [2:0][31:0] fetch_position;
+  logic [11:0] fetch_debug_position_id;
   logic [11:0] fetch_normal;
   logic [11:0] fetch_material;
   vertex_fetch vertex_fetch (
     .clk_in(gpu_clk),
-    .rst_in(rst_in || fetch_rst),
+    .rst_in(rst_in || pipeline_rst),
     .index_id_out(memory_index_id),
     .index_in(memory_index),
     .position_id_out(memory_position_id),
     .position_in(memory_position),
     .valid_out(fetch_valid),
     .position_out(fetch_position),
+    .debug_position_id_out(fetch_debug_position_id),
     .normal_out(fetch_normal),
     .material_out(fetch_material)
   );
@@ -297,7 +321,7 @@ module top_level (
     .rst_in,
 
     .valid_in(fragment_valid),
-    .light_direction(direction),
+    .light_direction(skylight ? 96'h3F13CD3A_3F13CD3A_3F13CD3A : direction),
     .triangle_id_in(triangle_id),
     .fragment_in(fragment),
     .normal_id_in(fragment_normal),
@@ -322,7 +346,7 @@ module top_level (
     .rst_in,
     .clear_in(framebuffer_clear),
     .switch_in(framebuffer_switch),
-    .crosshair_in(sw[0]),
+    .crosshair_in,
     .valid_in(pixel_valid),
     .ready_out(framebuffer_ready),
     .x_in(pixel_x),
@@ -333,6 +357,34 @@ module top_level (
     .vsync_out,
     .rgb_out
   );
+
+  // DEBUG PANEL CONTROL
+
+  always_ff @(posedge gpu_clk) begin
+    case (sw[4:0])
+      5'b00000: begin
+        lower_count <= debug_joystick_data[0][0];
+        upper_count <= debug_joystick_data[0][1];
+      end
+      5'b00001: begin
+        lower_count <= debug_joystick_data[1][0];
+        upper_count <= debug_joystick_data[1][1];
+      end
+      5'b00010: begin
+        lower_count <= state;
+        upper_count <= memory_index_id;
+      end
+      5'b00011: begin
+        if (fetch_valid) begin
+          {upper_count, lower_count} <= {fetch_debug_position_id, fetch_normal, fetch_material[7:0]};
+        end
+      end
+      5'b00100: begin
+        lower_count <= vertex_count;
+        upper_count <= pixel_count;
+      end
+    endcase
+  end
 
 endmodule
 
