@@ -5,7 +5,7 @@ module top_level (
   input wire clk_in,
 
   input wire [15:0] sw,
-  input wire btnc, btnu, btnl, btnr, btnd,
+  input wire btnr,
   input wire vjoyp3, vjoyn3, vjoyp11, vjoyn11,
   input wire uart_txd_in,
   output logic uart_rxd_out,
